@@ -10,6 +10,18 @@ import { ServiciosModule } from './servicios/servicios.module';
 import { TurnosModule } from './turnos/turnos.module';
 import { HomeController } from './home/home.controller';
 import { AuthModule } from './auth/auth.module';
+import { AeropuertosModule } from './aeropuertos/aeropuertos.module';
+import { CiudadesModule } from './ciudades/ciudades.module';
+import { PaisesModule } from './paises/paises.module';
+import { RolesModule } from './roles/roles.module';
+import { TiposProgramasModule } from './tipos-programas/tipos-programas.module';
+import { InstitucionesModule } from './instituciones/instituciones.module';
+import { PasaportesModule } from './pasaportes/pasaportes.module';
+import { PasajerosModule } from './pasajeros/pasajeros.module';
+import { PagosModule } from './pagos/pagos.module';
+import { ProgramasModule } from './programas/programas.module';
+import { VuelosModule } from './vuelos/vuelos.module';
+import { ViajesModule } from './viajes/viajes.module';
 
 
 
@@ -39,6 +51,18 @@ import { AuthModule } from './auth/auth.module';
     ServiciosModule,
     TurnosModule,
     AuthModule,
+    AeropuertosModule,
+    CiudadesModule,
+    PaisesModule,
+    RolesModule,
+    TiposProgramasModule,
+    InstitucionesModule,
+    PasaportesModule,
+    PasajerosModule,
+    PagosModule,
+    ProgramasModule,
+    VuelosModule,
+    ViajesModule,
 
   ],
   controllers: [HomeController],
