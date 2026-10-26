@@ -22,8 +22,9 @@ export class PagosEntity {
   @Column('int', { name: 'NumeroCuota' })
   numeroCuota: number;
 
+  // DECIMAL como string para no perder precision
   @Column('decimal', { name: 'MontoAbonado', precision: 15, scale: 2 })
-  montoAbonado: number;
+  montoAbonado: string;
 
   @Column('timestamp', { name: 'FechaPago' })
   fechaPago: Date;
@@ -32,7 +33,7 @@ export class PagosEntity {
   // Relaciones
   // =========================
 
-  @ManyToOne(() => PasajerosEntity)
+  @ManyToOne(() => PasajerosEntity, (pasajero) => pasajero.pagos)
   @JoinColumn({ name: 'IdPasajero' })
   pasajero: PasajerosEntity;
 }

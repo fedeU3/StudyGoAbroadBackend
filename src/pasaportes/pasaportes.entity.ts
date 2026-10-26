@@ -21,11 +21,12 @@ export class PasaportesEntity {
   @Column('varchar', { name: 'NumeroPasaporte', length: 9 })
   numeroPasaporte: string;
 
+  // DATE como string YYYY-MM-DD
   @Column('date', { name: 'FechaVencimiento' })
-  fechaVencimiento: Date;
+  fechaVencimiento: string;
 
   @Column('date', { name: 'FechaEmision' })
-  fechaEmision: Date;
+  fechaEmision: string;
 
   @Column('char', { name: 'Estado', length: 1 })
   estado: string;

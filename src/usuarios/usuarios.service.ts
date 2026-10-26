@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsuariosEntity } from './usuarios.entity';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
+import { RolesEntity } from '../roles/roles.entity';
+import { Role } from '../auth/enums/role.enum';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
@@ -12,38 +14,22 @@ export class UsuariosService {
   constructor(
     @InjectRepository(UsuariosEntity)
     private readonly UsuariosRepository: Repository<UsuariosEntity>,
+    @InjectRepository(RolesEntity)
+    private readonly rolesRepository: Repository<RolesEntity>,
   ) { }
-  getHello(): string {
-    return 'Hello World!';
+
+  // Nunca se devuelven Password ni Token
+  toResponse(usuario: UsuariosEntity) {
+    return {
+      idUsuario: usuario.idUsuario,
+      usuario: usuario.usuario,
+      rol: usuario.rol?.rol,
+    };
   }
 
-  getAll() {
-    return this.UsuariosRepository.find();
-  }
-
-
-  getByName(nombre: string) {
-    const equipo = this.UsuariosRepository.find({
-      where: { nombres: ILike(`%${nombre}%`) },
-    })
-
-    if (!nombre) {
-      throw new NotFoundException(`Equipo con ID ${nombre} no encontrado`);
-    }
-
-    return equipo;
-  }
-
-  getByType(tipo: string) {
-    const equipo = this.UsuariosRepository.find({
-      //where: { tipo: ILike(`%${tipo}%`) },
-    })
-
-    if (!equipo) {
-      throw new NotFoundException(`Equipo con ID ${tipo} no encontrado`);
-    }
-
-    return equipo;
+  async getAll() {
+    const usuarios = await this.UsuariosRepository.find({ order: { usuario: 'ASC' } });
+    return usuarios.map((usuario) => this.toResponse(usuario));
   }
 
   getById(id: number) {
@@ -62,24 +48,39 @@ export class UsuariosService {
     await this.UsuariosRepository.update({ idUsuario: id }, { token });
   }
 
-  async createUsuario(createUsuarioDto: CreateUsuarioDto) {
-    const usuarios = new UsuariosEntity();
+  async updateUsuario(id: number, dto: UpdateUsuarioDto) {
+    const usuario = await this.getById(id);
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
 
-    usuarios.usuario = createUsuarioDto.usuario;
-    usuarios.password = createUsuarioDto.password;
-    usuarios.estado = createUsuarioDto.estado;
-    usuarios.nombres = createUsuarioDto.nombres;
-    usuarios.apellidos = createUsuarioDto.apellidos;
-    usuarios.telefono = createUsuarioDto.telefono;
-    usuarios.dni = createUsuarioDto.dni;
-    usuarios.cuil = createUsuarioDto.cuil;
-    usuarios.email = createUsuarioDto.email;
-    usuarios.fechaAlta = new Date();
-    usuarios.calle = createUsuarioDto.calle;
-    usuarios.idLocalidad = createUsuarioDto.idLocalidad;
-    usuarios.idProvincia = createUsuarioDto.idProvincia;
+    if (dto.idRol !== undefined && dto.idRol !== usuario.idRol) {
+      const rol = await this.rolesRepository.findOneBy({ idRol: dto.idRol });
+      if (!rol) {
+        throw new NotFoundException(`Rol con id ${dto.idRol} no encontrado`);
+      }
 
-    return this.UsuariosRepository.save(usuarios);
+      // El ultimo editor no puede perder su rol: nadie podria volver a gestionar usuarios
+      const esEditor = usuario.rol?.rol?.toUpperCase() === Role.EDITOR;
+      if (esEditor && rol.rol.toUpperCase() !== Role.EDITOR) {
+        const editores = await this.UsuariosRepository.count({
+          where: { idRol: usuario.idRol },
+        });
+        if (editores <= 1) {
+          throw new BadRequestException('No se puede quitar el rol al último editor');
+        }
+      }
+
+      usuario.idRol = rol.idRol;
+      usuario.rol = rol;
+    }
+
+    if (dto.password !== undefined) {
+      usuario.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    await this.UsuariosRepository.save(usuario);
+    return this.toResponse(usuario);
   }
 
   async changePassword(id: number, dto: ChangePasswordDto): Promise<void> {
@@ -96,12 +97,4 @@ export class UsuariosService {
     const hashedPassword = await bcrypt.hash(dto.passwordNueva, 10);
     await this.UsuariosRepository.update({ idUsuario: id }, { password: hashedPassword });
   }
-
-  /*async deleteUsuario(id: number): Promise<void> {
-    const usuarios = await this.UsuariosRepository.findOneBy({ idUsuario: id });
-    if (!usuarios) {
-      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
-    }
-    await this.UsuariosRepository.delete(id);
-  }*/
 }

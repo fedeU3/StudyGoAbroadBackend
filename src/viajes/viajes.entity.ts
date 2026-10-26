@@ -30,7 +30,7 @@ export class ViajesEntity {
   // Relaciones
   // =========================
 
-  @ManyToOne(() => PasajerosEntity)
+  @ManyToOne(() => PasajerosEntity, (pasajero) => pasajero.viajes)
   @JoinColumn({ name: 'IdPasajero' })
   pasajero: PasajerosEntity;
 

@@ -1,9 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { PasaportesEntity } from '../pasaportes/pasaportes.entity';
 import { ProvinciasEntity } from '../provincias/provincias.entity';
 import { CiudadesEntity } from '../ciudades/ciudades.entity';
 import { InstitucionesEntity } from '../instituciones/instituciones.entity';
+import { ViajesEntity } from '../viajes/viajes.entity';
+import { PagosEntity } from '../pagos/pagos.entity';
 
 @Entity({ name: 'Pasajeros' })
 export class PasajerosEntity {
@@ -42,8 +44,9 @@ export class PasajerosEntity {
   @Column('varchar', { name: 'DNI', length: 8 })
   dni: string;
 
+  // DATE como string YYYY-MM-DD
   @Column('date', { name: 'FechaNacimiento' })
-  fechaNacimiento: Date;
+  fechaNacimiento: string;
 
   @Column('varchar', { name: 'Nacionalidad', length: 30 })
   nacionalidad: string;
@@ -82,4 +85,10 @@ export class PasajerosEntity {
   @ManyToOne(() => InstitucionesEntity)
   @JoinColumn({ name: 'IdInstitucion' })
   institucion: InstitucionesEntity;
+
+  @OneToMany(() => ViajesEntity, (viaje) => viaje.pasajero)
+  viajes: ViajesEntity[];
+
+  @OneToMany(() => PagosEntity, (pago) => pago.pasajero)
+  pagos: PagosEntity[];
 }

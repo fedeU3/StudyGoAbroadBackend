@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AeropuertosEntity } from './aeropuertos.entity';
+import { CreateAeropuertoDto } from './dto/create-aeropuerto.dto';
+import { UpdateAeropuertoDto } from './dto/update-aeropuerto.dto';
 
 @Injectable()
 export class AeropuertosService {
@@ -11,18 +13,19 @@ export class AeropuertosService {
   ) { }
 
   getAll() {
-    return this.aeropuertosRepository.find();
+    return this.aeropuertosRepository.find({ order: { aeropuerto: 'ASC' } });
   }
 
-  async getById(id: number) {
-    const item = await this.aeropuertosRepository.findOne({
-      where: { idAeropuerto: id },
-    });
+  create(dto: CreateAeropuertoDto) {
+    return this.aeropuertosRepository.save(this.aeropuertosRepository.create(dto));
+  }
 
+  async update(id: number, dto: UpdateAeropuertoDto) {
+    const item = await this.aeropuertosRepository.findOneBy({ idAeropuerto: id });
     if (!item) {
-      throw new NotFoundException(`Elemento con id ${id} no encontrado`);
+      throw new NotFoundException(`Aeropuerto con id ${id} no encontrado`);
     }
 
-    return item;
+    return this.aeropuertosRepository.save(this.aeropuertosRepository.merge(item, dto));
   }
 }

@@ -1,0 +1,2184 @@
+openapi: 3.0.3
+info:
+  title: StudyGoAbroad API
+  description: |
+    API del backend de StudyGoAbroad.
+
+    **Autenticación:** todas las rutas, salvo `POST /auth/login`, requieren el header `Authorization: Bearer {token}`.
+
+    **Roles:** todos los `GET` → `LECTOR` y `EDITOR`. Todos los `POST` y `PATCH` → solo `EDITOR`.
+    Excepciones: `/auth/me` y `/auth/password` los usa cualquier usuario logueado; `/usuarios` es solo `EDITOR` (también los `GET`).
+
+    **Baja:** siempre lógica, con `PATCH` sobre `estado` (`A` = Activo, `B` = Baja). Por defecto los listados devuelven solo registros activos; `?incluirBajas=true` muestra todos.
+
+    **Formatos:** montos como string decimal (`"1500.00"`); fechas `DATE` como `YYYY-MM-DD`; fechas con hora en ISO 8601 (`2026-03-15T14:30:00`).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Usuarios
+  - name: Roles
+  - name: Pasajeros
+  - name: Pasaportes
+  - name: Viajes
+  - name: Pagos
+  - name: Programas
+  - name: Tipos de programas
+  - name: Instituciones
+  - name: Vuelos
+  - name: Catálogos
+  - name: Dashboard
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      example: 1
+    IncluirBajas:
+      in: query
+      name: incluirBajas
+      required: false
+      description: Si es `true`, incluye los registros dados de baja (estado B)
+      schema:
+        type: boolean
+        default: false
+    Page:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Datos de entrada inválidos o regla de negocio violada
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorResponse"
+    Unauthorized:
+      description: Token inválido, vencido o no enviado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            statusCode: 401
+            message: "Unauthorized"
+    Forbidden:
+      description: El rol del usuario no permite esta operación (por ejemplo, un LECTOR haciendo un POST)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            statusCode: 403
+            message: "Forbidden resource"
+            error: "Forbidden"
+    NotFound:
+      description: El id de la ruta o una FK del body no existe
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            statusCode: 404
+            message: "Pasajero con id 99 no encontrado"
+            error: "Not Found"
+    Conflict:
+      description: Valor único repetido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            statusCode: 409
+            message: "Ya existe un pasajero con ese DNI"
+            error: "Conflict"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Recurso no encontrado"
+        error:
+          type: string
+          example: "Not Found"
+    ValidationErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          description: Un texto por campo inválido, o un único texto si es una regla de negocio
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+          example: ["dni debe tener 8 dígitos", "email must be an email"]
+        error:
+          type: string
+          example: "Bad Request"
+
+    Estado:
+      type: string
+      description: A = Activo, B = Baja
+      enum: [A, B]
+      example: "A"
+    Monto:
+      type: string
+      description: Decimal positivo con hasta 2 decimales
+      pattern: '^\d{1,13}(\.\d{1,2})?$'
+      example: "1500.00"
+    Fecha:
+      type: string
+      description: Fecha sin hora (YYYY-MM-DD)
+      format: date
+      example: "2026-03-15"
+
+    # =========================
+    # Usuarios y roles
+    # =========================
+    Rol:
+      type: object
+      properties:
+        idRol:
+          type: integer
+          example: 1
+        rol:
+          type: string
+          enum: [LECTOR, EDITOR]
+          example: "EDITOR"
+    Usuario:
+      type: object
+      description: Nunca incluye password ni token
+      properties:
+        idUsuario:
+          type: integer
+          example: 1
+        usuario:
+          type: string
+          example: "coni"
+        rol:
+          type: string
+          enum: [LECTOR, EDITOR]
+          example: "EDITOR"
+    UsuarioUpdate:
+      type: object
+      properties:
+        idRol:
+          type: integer
+          example: 2
+        password:
+          type: string
+          description: Reseteo de contraseña por un editor
+          minLength: 8
+          example: "nuevaClave123"
+
+    # =========================
+    # Catálogos
+    # =========================
+    Pais:
+      type: object
+      properties:
+        idPais:
+          type: integer
+          example: 1
+        pais:
+          type: string
+          example: "Argentina"
+    Provincia:
+      type: object
+      properties:
+        idProvincia:
+          type: integer
+          example: 1
+        provincia:
+          type: string
+          example: "Tucumán"
+    Ciudad:
+      type: object
+      properties:
+        idCiudad:
+          type: integer
+          example: 1
+        ciudad:
+          type: string
+          example: "San Miguel de Tucumán"
+    Aeropuerto:
+      type: object
+      properties:
+        idAeropuerto:
+          type: integer
+          example: 1
+        aeropuerto:
+          type: string
+          example: "Ministro Pistarini (EZE)"
+    AeropuertoInput:
+      type: object
+      required:
+        - aeropuerto
+      properties:
+        aeropuerto:
+          type: string
+          maxLength: 120
+          example: "Ministro Pistarini (EZE)"
+    TipoPrograma:
+      type: object
+      properties:
+        idTipoPrograma:
+          type: integer
+          example: 1
+        tipoPrograma:
+          type: string
+          example: "Intercambio"
+
+    # =========================
+    # Instituciones
+    # =========================
+    Institucion:
+      type: object
+      properties:
+        idInstitucion:
+          type: integer
+          example: 1
+        idCiudad:
+          type: integer
+          example: 1
+        idProvincia:
+          type: integer
+          example: 1
+        idPais:
+          type: integer
+          example: 1
+        institucion:
+          type: string
+          example: "Colegio Nacional"
+        estado:
+          $ref: "#/components/schemas/Estado"
+    InstitucionDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Institucion"
+        - type: object
+          properties:
+            pais:
+              $ref: "#/components/schemas/Pais"
+            provincia:
+              $ref: "#/components/schemas/Provincia"
+            ciudad:
+              $ref: "#/components/schemas/Ciudad"
+    InstitucionInput:
+      type: object
+      required:
+        - institucion
+        - idPais
+        - idProvincia
+        - idCiudad
+      properties:
+        institucion:
+          type: string
+          maxLength: 100
+          example: "Colegio Nacional"
+        idPais:
+          type: integer
+          example: 1
+        idProvincia:
+          type: integer
+          example: 1
+        idCiudad:
+          type: integer
+          example: 1
+    InstitucionUpdate:
+      type: object
+      description: Todos los campos son opcionales
+      properties:
+        institucion:
+          type: string
+          maxLength: 100
+        idPais:
+          type: integer
+        idProvincia:
+          type: integer
+        idCiudad:
+          type: integer
+        estado:
+          $ref: "#/components/schemas/Estado"
+
+    # =========================
+    # Pasajeros
+    # =========================
+    Pasajero:
+      type: object
+      description: Pasajero tal como aparece en los listados (sin alergia ni dieta)
+      properties:
+        idPasajero:
+          type: integer
+          example: 1
+        idFactura:
+          type: string
+          example: "FC-0001"
+        idPasaporte:
+          type: integer
+          nullable: true
+          example: 1
+        idProvincia:
+          type: integer
+          example: 1
+        idCiudad:
+          type: integer
+          example: 1
+        idInstitucion:
+          type: integer
+          example: 1
+        nombres:
+          type: string
+          example: "Juan Pablo"
+        apellido:
+          type: string
+          example: "Pérez"
+        dni:
+          type: string
+          example: "40123456"
+        fechaNacimiento:
+          $ref: "#/components/schemas/Fecha"
+        nacionalidad:
+          type: string
+          example: "Argentina"
+        domicilio:
+          type: string
+          example: "Av. Mate de Luna 1234"
+        email:
+          type: string
+          example: "juan.perez@mail.com"
+        estado:
+          $ref: "#/components/schemas/Estado"
+        institucion:
+          type: object
+          properties:
+            idInstitucion:
+              type: integer
+              example: 1
+            institucion:
+              type: string
+              example: "Colegio Nacional"
+    PasajerosPaginados:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pasajero"
+        total:
+          type: integer
+          example: 57
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+    PasajeroDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Pasajero"
+        - type: object
+          properties:
+            alergia:
+              type: string
+              nullable: true
+              example: "Maní"
+            dieta:
+              type: string
+              nullable: true
+              example: "Vegetariana"
+            pasaporte:
+              allOf:
+                - $ref: "#/components/schemas/Pasaporte"
+              nullable: true
+            provincia:
+              $ref: "#/components/schemas/Provincia"
+            ciudad:
+              $ref: "#/components/schemas/Ciudad"
+            viajes:
+              type: array
+              items:
+                $ref: "#/components/schemas/Viaje"
+            pagos:
+              type: array
+              description: Ordenados por número de cuota
+              items:
+                $ref: "#/components/schemas/Pago"
+    PasajeroInput:
+      type: object
+      required:
+        - idFactura
+        - nombres
+        - apellido
+        - dni
+        - fechaNacimiento
+        - nacionalidad
+        - domicilio
+        - email
+        - idProvincia
+        - idCiudad
+        - idInstitucion
+      properties:
+        idFactura:
+          type: string
+          maxLength: 100
+          example: "FC-0001"
+        nombres:
+          type: string
+          maxLength: 30
+          example: "Juan Pablo"
+        apellido:
+          type: string
+          maxLength: 30
+          example: "Pérez"
+        dni:
+          type: string
+          description: 8 dígitos
+          pattern: '^\d{8}$'
+          example: "40123456"
+        fechaNacimiento:
+          type: string
+          format: date
+          description: YYYY-MM-DD, no puede ser futura
+          example: "2009-05-20"
+        nacionalidad:
+          type: string
+          maxLength: 30
+          example: "Argentina"
+        domicilio:
+          type: string
+          maxLength: 120
+          example: "Av. Mate de Luna 1234"
+        email:
+          type: string
+          format: email
+          maxLength: 120
+          example: "juan.perez@mail.com"
+        idProvincia:
+          type: integer
+          example: 1
+        idCiudad:
+          type: integer
+          example: 1
+        idInstitucion:
+          type: integer
+          example: 1
+        alergia:
+          type: string
+          maxLength: 120
+          example: "Maní"
+        dieta:
+          type: string
+          maxLength: 120
+          example: "Vegetariana"
+    PasajeroUpdate:
+      description: Mismos campos que PasajeroInput, todos opcionales, más `estado` para dar de baja
+      allOf:
+        - $ref: "#/components/schemas/PasajeroInputOpcional"
+        - type: object
+          properties:
+            estado:
+              $ref: "#/components/schemas/Estado"
+    PasajeroInputOpcional:
+      type: object
+      properties:
+        idFactura:
+          type: string
+          maxLength: 100
+        nombres:
+          type: string
+          maxLength: 30
+        apellido:
+          type: string
+          maxLength: 30
+        dni:
+          type: string
+          pattern: '^\d{8}$'
+        fechaNacimiento:
+          type: string
+          format: date
+        nacionalidad:
+          type: string
+          maxLength: 30
+        domicilio:
+          type: string
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 120
+        idProvincia:
+          type: integer
+        idCiudad:
+          type: integer
+        idInstitucion:
+          type: integer
+        alergia:
+          type: string
+          maxLength: 120
+        dieta:
+          type: string
+          maxLength: 120
+
+    # =========================
+    # Pasaportes
+    # =========================
+    Pasaporte:
+      type: object
+      properties:
+        idPasaporte:
+          type: integer
+          example: 1
+        idPaisEmisor:
+          type: integer
+          example: 1
+        numeroPasaporte:
+          type: string
+          example: "AAB123456"
+        fechaEmision:
+          $ref: "#/components/schemas/Fecha"
+        fechaVencimiento:
+          $ref: "#/components/schemas/Fecha"
+        estado:
+          $ref: "#/components/schemas/Estado"
+        paisEmisor:
+          $ref: "#/components/schemas/Pais"
+    PasaporteInput:
+      type: object
+      required:
+        - numeroPasaporte
+        - idPaisEmisor
+        - fechaEmision
+        - fechaVencimiento
+      properties:
+        numeroPasaporte:
+          type: string
+          description: Entre 6 y 9 letras mayúsculas o dígitos
+          pattern: '^[A-Z0-9]{6,9}$'
+          example: "AAB123456"
+        idPaisEmisor:
+          type: integer
+          example: 1
+        fechaEmision:
+          type: string
+          format: date
+          example: "2024-01-10"
+        fechaVencimiento:
+          type: string
+          format: date
+          description: Posterior a fechaEmision
+          example: "2034-01-10"
+    PasaporteUpdate:
+      type: object
+      description: Todos los campos son opcionales
+      properties:
+        numeroPasaporte:
+          type: string
+          pattern: '^[A-Z0-9]{6,9}$'
+        idPaisEmisor:
+          type: integer
+        fechaEmision:
+          type: string
+          format: date
+        fechaVencimiento:
+          type: string
+          format: date
+        estado:
+          $ref: "#/components/schemas/Estado"
+    PasaportePorVencer:
+      allOf:
+        - $ref: "#/components/schemas/Pasaporte"
+        - type: object
+          properties:
+            vencido:
+              type: boolean
+              description: true si la fecha de vencimiento ya pasó
+              example: false
+            pasajero:
+              type: object
+              properties:
+                idPasajero:
+                  type: integer
+                  example: 1
+                nombres:
+                  type: string
+                  example: "Juan Pablo"
+                apellido:
+                  type: string
+                  example: "Pérez"
+                dni:
+                  type: string
+                  example: "40123456"
+
+    # =========================
+    # Programas
+    # =========================
+    Programa:
+      type: object
+      properties:
+        idPrograma:
+          type: integer
+          example: 1
+        idTipoPrograma:
+          type: integer
+          example: 1
+        idPaisExcursion:
+          type: integer
+          example: 2
+        idPaisDestino:
+          type: integer
+          example: 3
+        nombrePrograma:
+          type: string
+          example: "Verano en Londres 2027"
+        duracionPrograma:
+          type: integer
+          example: 30
+        montoTotalViaje:
+          $ref: "#/components/schemas/Monto"
+        institucionReceptora:
+          type: string
+          example: "London School"
+        estado:
+          $ref: "#/components/schemas/Estado"
+    ProgramaDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Programa"
+        - type: object
+          properties:
+            tipoPrograma:
+              $ref: "#/components/schemas/TipoPrograma"
+            paisDestino:
+              $ref: "#/components/schemas/Pais"
+            paisExcursion:
+              $ref: "#/components/schemas/Pais"
+    ProgramaInput:
+      type: object
+      required:
+        - nombrePrograma
+        - idTipoPrograma
+        - idPaisDestino
+        - idPaisExcursion
+        - duracionPrograma
+        - montoTotalViaje
+        - institucionReceptora
+      properties:
+        nombrePrograma:
+          type: string
+          maxLength: 50
+          example: "Verano en Londres 2027"
+        idTipoPrograma:
+          type: integer
+          example: 1
+        idPaisDestino:
+          type: integer
+          example: 3
+        idPaisExcursion:
+          type: integer
+          example: 2
+        duracionPrograma:
+          type: integer
+          minimum: 1
+          example: 30
+        montoTotalViaje:
+          $ref: "#/components/schemas/Monto"
+        institucionReceptora:
+          type: string
+          maxLength: 100
+          example: "London School"
+    ProgramaUpdate:
+      type: object
+      description: Todos los campos son opcionales
+      properties:
+        nombrePrograma:
+          type: string
+          maxLength: 50
+        idTipoPrograma:
+          type: integer
+        idPaisDestino:
+          type: integer
+        idPaisExcursion:
+          type: integer
+        duracionPrograma:
+          type: integer
+          minimum: 1
+        montoTotalViaje:
+          $ref: "#/components/schemas/Monto"
+        institucionReceptora:
+          type: string
+          maxLength: 100
+        estado:
+          $ref: "#/components/schemas/Estado"
+
+    # =========================
+    # Vuelos
+    # =========================
+    Vuelo:
+      type: object
+      properties:
+        idVuelo:
+          type: integer
+          example: 1
+        idAeropuertoOrigen:
+          type: integer
+          example: 1
+        idAeropuertoDestino:
+          type: integer
+          example: 2
+        numeroVuelo:
+          type: string
+          example: "AR1132"
+        tipoVuelo:
+          type: string
+          description: I = Internacional, N = Nacional
+          enum: [I, N]
+          example: "I"
+        fecha:
+          type: string
+          format: date-time
+          example: "2027-01-10T22:30:00"
+        aeropuertoOrigen:
+          $ref: "#/components/schemas/Aeropuerto"
+        aeropuertoDestino:
+          $ref: "#/components/schemas/Aeropuerto"
+    VuelosPaginados:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vuelo"
+        total:
+          type: integer
+          example: 12
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+    VueloInput:
+      type: object
+      required:
+        - numeroVuelo
+        - tipoVuelo
+        - fecha
+        - idAeropuertoOrigen
+        - idAeropuertoDestino
+      properties:
+        numeroVuelo:
+          type: string
+          description: Entre 3 y 9 letras mayúsculas o dígitos
+          pattern: '^[A-Z0-9]{3,9}$'
+          example: "AR1132"
+        tipoVuelo:
+          type: string
+          enum: [I, N]
+          example: "I"
+        fecha:
+          type: string
+          format: date-time
+          example: "2027-01-10T22:30:00"
+        idAeropuertoOrigen:
+          type: integer
+          example: 1
+        idAeropuertoDestino:
+          type: integer
+          description: Distinto del origen
+          example: 2
+    VueloUpdate:
+      type: object
+      description: Todos los campos son opcionales
+      properties:
+        numeroVuelo:
+          type: string
+          pattern: '^[A-Z0-9]{3,9}$'
+        tipoVuelo:
+          type: string
+          enum: [I, N]
+        fecha:
+          type: string
+          format: date-time
+        idAeropuertoOrigen:
+          type: integer
+        idAeropuertoDestino:
+          type: integer
+
+    # =========================
+    # Viajes
+    # =========================
+    Viaje:
+      type: object
+      properties:
+        idViaje:
+          type: integer
+          example: 1
+        idPasajero:
+          type: integer
+          example: 1
+        idPrograma:
+          type: integer
+          example: 1
+        idVueloInternacional:
+          type: integer
+          example: 1
+        idVueloNacional:
+          type: integer
+          nullable: true
+          example: 2
+        programa:
+          $ref: "#/components/schemas/Programa"
+        vueloInternacional:
+          $ref: "#/components/schemas/Vuelo"
+        vueloNacional:
+          allOf:
+            - $ref: "#/components/schemas/Vuelo"
+          nullable: true
+    ViajeDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Viaje"
+        - type: object
+          properties:
+            pasajero:
+              $ref: "#/components/schemas/Pasajero"
+    ViajeCreado:
+      allOf:
+        - $ref: "#/components/schemas/ViajeDetalle"
+        - type: object
+          properties:
+            advertencias:
+              type: array
+              description: Avisos que no bloquean el alta (por ejemplo, pasaporte vencido para la fecha del vuelo)
+              items:
+                type: string
+              example: ["El pasaporte vence el 2026-12-01, antes del vuelo internacional"]
+    ViajeInput:
+      type: object
+      required:
+        - idPrograma
+        - idVueloInternacional
+      properties:
+        idPrograma:
+          type: integer
+          example: 1
+        idVueloInternacional:
+          type: integer
+          description: Tiene que ser un vuelo de tipo I
+          example: 1
+        idVueloNacional:
+          type: integer
+          nullable: true
+          description: Opcional; tiene que ser un vuelo de tipo N
+          example: 2
+    ViajeUpdate:
+      type: object
+      description: Solo se cambian los vuelos. Para cambiar pasajero o programa se crea otro viaje.
+      properties:
+        idVueloInternacional:
+          type: integer
+          example: 3
+        idVueloNacional:
+          type: integer
+          nullable: true
+          example: null
+
+    # =========================
+    # Pagos
+    # =========================
+    Pago:
+      type: object
+      properties:
+        idPago:
+          type: integer
+          example: 1
+        idPasajero:
+          type: integer
+          example: 1
+        numeroCuota:
+          type: integer
+          example: 1
+        montoAbonado:
+          $ref: "#/components/schemas/Monto"
+        fechaPago:
+          type: string
+          format: date-time
+          example: "2026-10-01T10:00:00.000Z"
+    PagosPasajero:
+      type: object
+      properties:
+        items:
+          type: array
+          description: Ordenados por número de cuota
+          items:
+            $ref: "#/components/schemas/Pago"
+        totalAbonado:
+          $ref: "#/components/schemas/Monto"
+        siguienteCuota:
+          type: integer
+          description: Número de cuota sugerido para el próximo pago
+          example: 4
+    PagoInput:
+      type: object
+      required:
+        - numeroCuota
+        - montoAbonado
+        - fechaPago
+      properties:
+        numeroCuota:
+          type: integer
+          minimum: 1
+          description: No puede repetirse para el mismo pasajero
+          example: 1
+        montoAbonado:
+          $ref: "#/components/schemas/Monto"
+        fechaPago:
+          type: string
+          format: date-time
+          description: No puede ser futura
+          example: "2026-10-01T10:00:00"
+    PagoUpdate:
+      type: object
+      description: Todos los campos son opcionales
+      properties:
+        numeroCuota:
+          type: integer
+          minimum: 1
+        montoAbonado:
+          $ref: "#/components/schemas/Monto"
+        fechaPago:
+          type: string
+          format: date-time
+
+    # =========================
+    # Dashboard
+    # =========================
+    Dashboard:
+      type: object
+      properties:
+        pasajerosActivos:
+          type: integer
+          example: 57
+        programasDisponibles:
+          type: integer
+          example: 4
+        proximosViajes:
+          type: integer
+          description: Viajes cuyo vuelo internacional todavía no salió
+          example: 30
+        proximosVuelos:
+          type: integer
+          example: 6
+        pagos:
+          type: object
+          properties:
+            mesActual:
+              type: object
+              properties:
+                cantidad:
+                  type: integer
+                  example: 12
+                monto:
+                  $ref: "#/components/schemas/Monto"
+            total:
+              type: object
+              properties:
+                cantidad:
+                  type: integer
+                  example: 140
+                monto:
+                  $ref: "#/components/schemas/Monto"
+        pasaportesPorVencer:
+          type: integer
+          description: Pasaportes activos que vencen en los próximos 180 días
+          example: 3
+
+paths:
+  # =========================
+  # Auth
+  # =========================
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Iniciar sesión. Ingresar usuario y contraseña y devuelve token
+      description: Autentica al usuario y devuelve un JWT que debe usarse en el resto de las rutas.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuario
+                - password
+              properties:
+                usuario:
+                  type: string
+                  example: "coni"
+                password:
+                  type: string
+                  example: "clave12345"
+      responses:
+        "201":
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Usuario inexistente o contraseña incorrecta (mismo mensaje en ambos casos)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                statusCode: 401
+                message: "Credenciales inválidas"
+                error: "Unauthorized"
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Obtener usuario autenticado
+      description: Devuelve el usuario dueño del JWT y su rol.
+      operationId: getMe
+      responses:
+        "200":
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usuario"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/password:
+    patch:
+      tags:
+        - Auth
+      summary: Cambiar la contraseña propia
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - passwordActual
+                - passwordNueva
+              properties:
+                passwordActual:
+                  type: string
+                  example: "clave12345"
+                passwordNueva:
+                  type: string
+                  minLength: 8
+                  example: "nuevaClave123"
+      responses:
+        "204":
+          description: Contraseña actualizada
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Token inválido o contraseña actual incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                statusCode: 401
+                message: "La contraseña actual es incorrecta"
+                error: "Unauthorized"
+
+  # =========================
+  # Usuarios y Roles
+  # =========================
+  /usuarios:
+    get:
+      tags:
+        - Usuarios
+      summary: Listar usuarios (solo EDITOR)
+      description: Los usuarios se cargan por seed; no hay alta desde la API.
+      operationId: getUsuarios
+      responses:
+        "200":
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Usuario"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /usuarios/{id}:
+    patch:
+      tags:
+        - Usuarios
+      summary: Cambiar rol o resetear contraseña (solo EDITOR)
+      description: No se puede quitar el rol EDITOR al último editor.
+      operationId: updateUsuario
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsuarioUpdate"
+      responses:
+        "200":
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usuario"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /roles:
+    get:
+      tags:
+        - Roles
+      summary: Listar roles
+      operationId: getRoles
+      responses:
+        "200":
+          description: Lista de roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rol"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # =========================
+  # Pasajeros
+  # =========================
+  /pasajeros:
+    get:
+      tags:
+        - Pasajeros
+      summary: Listar pasajeros (paginado)
+      description: El listado no incluye alergia ni dieta.
+      operationId: getPasajeros
+      parameters:
+        - in: query
+          name: search
+          required: false
+          description: Busca en apellido, nombres, DNI y email
+          schema:
+            type: string
+        - in: query
+          name: idInstitucion
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: idProvincia
+          required: false
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/IncluirBajas"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Página de pasajeros
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasajerosPaginados"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - Pasajeros
+      summary: Crear pasajero
+      description: El pasajero se crea con estado A.
+      operationId: createPasajero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasajeroInput"
+      responses:
+        "201":
+          description: Pasajero creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pasajero"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /pasajeros/{id}:
+    get:
+      tags:
+        - Pasajeros
+      summary: Obtener pasajero con su pasaporte, institución, viajes y pagos
+      operationId: getPasajeroById
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Detalle del pasajero
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasajeroDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - Pasajeros
+      summary: Editar pasajero
+      description: 'Para dar de baja enviar `{ "estado": "B" }`. Se permite aunque tenga pagos o viajes.'
+      operationId: updatePasajero
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasajeroUpdate"
+      responses:
+        "200":
+          description: Pasajero actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pasajero"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  # =========================
+  # Pasaportes
+  # =========================
+  /pasajeros/{id}/pasaporte:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Pasaportes
+      summary: Obtener el pasaporte vigente del pasajero
+      operationId: getPasaporte
+      responses:
+        "200":
+          description: Pasaporte del pasajero
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pasaporte"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: El pasajero no existe o no tiene pasaporte
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Pasaportes
+      summary: Crear y asignar el pasaporte del pasajero
+      description: |
+        Crea el pasaporte y actualiza el pasajero en una transacción.
+        Si el pasajero ya tenía uno (renovación), el anterior pasa a estado B y queda como historial.
+      operationId: createPasaporte
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasaporteInput"
+      responses:
+        "201":
+          description: Pasaporte creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pasaporte"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    patch:
+      tags:
+        - Pasaportes
+      summary: Editar el pasaporte del pasajero
+      operationId: updatePasaporte
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasaporteUpdate"
+      responses:
+        "200":
+          description: Pasaporte actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pasaporte"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /pasaportes/por-vencer:
+    get:
+      tags:
+        - Pasaportes
+      summary: Pasaportes próximos a vencer
+      description: Pasaportes activos que vencen dentro de `dias` días, o antes de un vuelo internacional futuro de su pasajero.
+      operationId: getPasaportesPorVencer
+      parameters:
+        - in: query
+          name: dias
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 180
+      responses:
+        "200":
+          description: Pasaportes ordenados por fecha de vencimiento
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PasaportePorVencer"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # =========================
+  # Viajes
+  # =========================
+  /pasajeros/{id}/viajes:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Viajes
+      summary: Listar los viajes del pasajero
+      operationId: getViajesPasajero
+      responses:
+        "200":
+          description: Viajes con programa y vuelos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Viaje"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags:
+        - Viajes
+      summary: Inscribir al pasajero en un programa con sus vuelos
+      description: Un pasajero puede repetir un programa; cada inscripción es un viaje distinto.
+      operationId: createViaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViajeInput"
+      responses:
+        "201":
+          description: Viaje creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViajeCreado"
+        "400":
+          description: Datos inválidos o vuelo de tipo incorrecto para el campo donde se asigna
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /programas/{id}/viajes:
+    get:
+      tags:
+        - Viajes
+      summary: Listar los viajes de un programa con su pasajero
+      operationId: getViajesPrograma
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Viajes ordenados por apellido del pasajero
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ViajeDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /viajes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Viajes
+      summary: Obtener viaje con pasajero, programa y vuelos
+      operationId: getViajeById
+      responses:
+        "200":
+          description: Detalle del viaje
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViajeDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - Viajes
+      summary: Cambiar los vuelos del viaje
+      description: Enviar idPrograma o idPasajero devuelve 400.
+      operationId: updateViaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViajeUpdate"
+      responses:
+        "200":
+          description: Viaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViajeDetalle"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # =========================
+  # Pagos
+  # =========================
+  /pasajeros/{id}/pagos:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Pagos
+      summary: Historial de pagos del pasajero
+      description: Incluye el total abonado y la siguiente cuota sugerida.
+      operationId: getPagosPasajero
+      responses:
+        "200":
+          description: Pagos del pasajero
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagosPasajero"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags:
+        - Pagos
+      summary: Registrar un pago del pasajero
+      operationId: createPago
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagoInput"
+      responses:
+        "201":
+          description: Pago registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pago"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: El pasajero ya tiene registrada esa cuota
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                statusCode: 409
+                message: "El pasajero ya tiene registrada la cuota 3"
+                error: "Conflict"
+  /pagos/{id}:
+    patch:
+      tags:
+        - Pagos
+      summary: Corregir un pago
+      operationId: updatePago
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagoUpdate"
+      responses:
+        "200":
+          description: Pago actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pago"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  # =========================
+  # Programas y Tipos de programas
+  # =========================
+  /programas:
+    get:
+      tags:
+        - Programas
+      summary: Listar programas
+      operationId: getProgramas
+      parameters:
+        - in: query
+          name: idTipoPrograma
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: idPaisDestino
+          required: false
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/IncluirBajas"
+      responses:
+        "200":
+          description: Lista de programas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgramaDetalle"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - Programas
+      summary: Crear programa
+      description: El programa se crea con estado A.
+      operationId: createPrograma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramaInput"
+      responses:
+        "201":
+          description: Programa creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Programa"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /programas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Programas
+      summary: Obtener programa con tipo y países
+      operationId: getProgramaById
+      responses:
+        "200":
+          description: Detalle del programa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramaDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - Programas
+      summary: Editar programa
+      description: 'Para dar de baja enviar `{ "estado": "B" }`. Se permite aunque tenga viajes.'
+      operationId: updatePrograma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramaUpdate"
+      responses:
+        "200":
+          description: Programa actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Programa"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /tipos-programas:
+    get:
+      tags:
+        - Tipos de programas
+      summary: Listar tipos de programa
+      operationId: getTiposProgramas
+      responses:
+        "200":
+          description: Lista de tipos de programa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TipoPrograma"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # =========================
+  # Instituciones
+  # =========================
+  /instituciones:
+    get:
+      tags:
+        - Instituciones
+      summary: Listar instituciones
+      operationId: getInstituciones
+      parameters:
+        - in: query
+          name: search
+          required: false
+          description: Busca por nombre
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IncluirBajas"
+      responses:
+        "200":
+          description: Lista de instituciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Institucion"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - Instituciones
+      summary: Crear institución
+      description: La institución se crea con estado A.
+      operationId: createInstitucion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstitucionInput"
+      responses:
+        "201":
+          description: Institución creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Institucion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /instituciones/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Instituciones
+      summary: Obtener institución con país, provincia y ciudad
+      operationId: getInstitucionById
+      responses:
+        "200":
+          description: Detalle de la institución
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitucionDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - Instituciones
+      summary: Editar institución
+      description: 'Para dar de baja enviar `{ "estado": "B" }`. Se permite aunque tenga pasajeros.'
+      operationId: updateInstitucion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstitucionUpdate"
+      responses:
+        "200":
+          description: Institución actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Institucion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /instituciones/{id}/pasajeros:
+    get:
+      tags:
+        - Instituciones
+      summary: Listar los pasajeros de la institución
+      description: Sin alergia ni dieta.
+      operationId: getPasajerosInstitucion
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IncluirBajas"
+      responses:
+        "200":
+          description: Pasajeros de la institución
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pasajero"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # =========================
+  # Vuelos
+  # =========================
+  /vuelos:
+    get:
+      tags:
+        - Vuelos
+      summary: Listar vuelos (paginado, ordenado por fecha)
+      description: Los próximos vuelos se piden con `?desde=<hoy>`.
+      operationId: getVuelos
+      parameters:
+        - in: query
+          name: desde
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2026-10-26"
+        - in: query
+          name: hasta
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: idAeropuerto
+          required: false
+          description: Aeropuerto de origen o de destino
+          schema:
+            type: integer
+        - in: query
+          name: numeroVuelo
+          required: false
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Página de vuelos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VuelosPaginados"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - Vuelos
+      summary: Crear vuelo
+      operationId: createVuelo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VueloInput"
+      responses:
+        "201":
+          description: Vuelo creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vuelo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /vuelos/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Vuelos
+      summary: Obtener vuelo con sus aeropuertos
+      operationId: getVueloById
+      responses:
+        "200":
+          description: Detalle del vuelo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vuelo"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - Vuelos
+      summary: Editar vuelo
+      operationId: updateVuelo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VueloUpdate"
+      responses:
+        "200":
+          description: Vuelo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vuelo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # =========================
+  # Catálogos
+  # =========================
+  /aeropuertos:
+    get:
+      tags:
+        - Catálogos
+      summary: Listar aeropuertos
+      operationId: getAeropuertos
+      responses:
+        "200":
+          description: Lista de aeropuertos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Aeropuerto"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - Catálogos
+      summary: Crear aeropuerto
+      operationId: createAeropuerto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AeropuertoInput"
+      responses:
+        "201":
+          description: Aeropuerto creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Aeropuerto"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /aeropuertos/{id}:
+    patch:
+      tags:
+        - Catálogos
+      summary: Corregir el nombre de un aeropuerto
+      operationId: updateAeropuerto
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AeropuertoInput"
+      responses:
+        "200":
+          description: Aeropuerto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Aeropuerto"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /paises:
+    get:
+      tags:
+        - Catálogos
+      summary: Listar países (se cargan por seed)
+      operationId: getPaises
+      responses:
+        "200":
+          description: Lista de países
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pais"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /provincias:
+    get:
+      tags:
+        - Catálogos
+      summary: Listar provincias (se cargan por seed)
+      operationId: getProvincias
+      responses:
+        "200":
+          description: Lista de provincias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Provincia"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /ciudades:
+    get:
+      tags:
+        - Catálogos
+      summary: Listar ciudades (se cargan por seed)
+      operationId: getCiudades
+      responses:
+        "200":
+          description: Lista de ciudades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ciudad"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # =========================
+  # Dashboard
+  # =========================
+  /dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Indicadores resumidos para el dashboard
+      description: Todos los indicadores en una sola request.
+      operationId: getDashboard
+      responses:
+        "200":
+          description: Indicadores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+        "401":
+          $ref: "#/components/responses/Unauthorized"

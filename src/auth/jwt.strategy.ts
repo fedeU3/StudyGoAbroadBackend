@@ -14,17 +14,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // El rol se lee de la BD en cada request, asi un cambio de rol aplica de inmediato
   async validate(payload: any) {
     const { id } = payload;
     const user = await this.usuariosService.getById(id);
 
     if (!user) {
       throw new UnauthorizedException('Login first to access this endpoint.');
-    }
-
-    // Un usuario dado de baja no puede seguir usando un token emitido antes
-    if (user.estado !== 'A') {
-      throw new UnauthorizedException('User is inactive');
     }
 
     return user;

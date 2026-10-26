@@ -1,13 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ProvinciasModule } from './provincias/provincias.module';
-import { LocalidadesModule } from './localidades/localidades.module';
-import { ServiciosModule } from './servicios/servicios.module';
-import { TurnosModule } from './turnos/turnos.module';
 import { HomeController } from './home/home.controller';
 import { AuthModule } from './auth/auth.module';
 import { AeropuertosModule } from './aeropuertos/aeropuertos.module';
@@ -22,6 +17,7 @@ import { PagosModule } from './pagos/pagos.module';
 import { ProgramasModule } from './programas/programas.module';
 import { VuelosModule } from './vuelos/vuelos.module';
 import { ViajesModule } from './viajes/viajes.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 
 
@@ -46,10 +42,7 @@ import { ViajesModule } from './viajes/viajes.module';
       schema: "public",
     }),
     UsuariosModule,
-    LocalidadesModule,
     ProvinciasModule,
-    ServiciosModule,
-    TurnosModule,
     AuthModule,
     AeropuertosModule,
     CiudadesModule,
@@ -63,6 +56,7 @@ import { ViajesModule } from './viajes/viajes.module';
     ProgramasModule,
     VuelosModule,
     ViajesModule,
+    DashboardModule,
 
   ],
   controllers: [HomeController],

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CiudadesEntity } from './ciudades.entity';
@@ -11,18 +11,6 @@ export class CiudadesService {
   ) { }
 
   getAll() {
-    return this.ciudadesRepository.find();
-  }
-
-  async getById(id: number) {
-    const item = await this.ciudadesRepository.findOne({
-      where: { idCiudad: id },
-    });
-
-    if (!item) {
-      throw new NotFoundException(`Elemento con id ${id} no encontrado`);
-    }
-
-    return item;
+    return this.ciudadesRepository.find({ order: { ciudad: 'ASC' } });
   }
 }

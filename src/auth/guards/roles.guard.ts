@@ -1,22 +1,24 @@
-import { CanActivate, ExecutionContext } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Role } from "../enums/role.enum";
 import { ROLES_KEY } from "../decorators/roles.decorator";
 
+@Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const request = context.switchToHttp().getRequest();
 
-    if (!requiredRoles) return true;
+    // Sin @Roles(): los GET son para lector y editor, el resto solo para editor
+    const requiredRoles =
+      this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ??
+      (request.method === 'GET' ? [Role.LECTOR, Role.EDITOR] : [Role.EDITOR]);
 
-    const { user } = context.switchToHttp().getRequest();
+    const rol = request.user?.rol?.rol?.toUpperCase();
 
-    if (user.rol?.rol === Role.ADMIN) return true;
-
-    return requiredRoles.includes(user.rol?.rol);
+    return requiredRoles.includes(rol);
   }
 }

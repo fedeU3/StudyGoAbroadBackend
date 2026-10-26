@@ -1,6 +1,5 @@
+// Valores de la columna "Rol" de la tabla Roles
 export enum Role {
-  CAJERO = 'cajero',
-  CONSULTA = 'consulta',
-  DEPOSITO = 'deposito',
-  ADMIN = 'admin',
+  LECTOR = 'LECTOR',
+  EDITOR = 'EDITOR',
 }
