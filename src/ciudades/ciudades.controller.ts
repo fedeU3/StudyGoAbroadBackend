@@ -1,17 +1,15 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { CiudadesService } from './ciudades.service';
+import { Auth } from '../auth/decorators/auth.decorator';
 
+// Solo lectura: los datos se cargan por seed
 @Controller('ciudades')
+@Auth()
 export class CiudadesController {
   constructor(private readonly ciudadesService: CiudadesService) { }
 
   @Get()
   getAll() {
     return this.ciudadesService.getAll();
-  }
-
-  @Get(':id')
-  async getById(@Param('id', ParseIntPipe) id: number) {
-    return this.ciudadesService.getById(id);
   }
 }

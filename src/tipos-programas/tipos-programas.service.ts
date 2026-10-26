@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TiposProgramasEntity } from './tipos-programas.entity';
@@ -11,18 +11,6 @@ export class TiposProgramasService {
   ) { }
 
   getAll() {
-    return this.tiposProgramasRepository.find();
-  }
-
-  async getById(id: number) {
-    const item = await this.tiposProgramasRepository.findOne({
-      where: { idTipoPrograma: id },
-    });
-
-    if (!item) {
-      throw new NotFoundException(`Elemento con id ${id} no encontrado`);
-    }
-
-    return item;
+    return this.tiposProgramasRepository.find({ order: { tipoPrograma: 'ASC' } });
   }
 }

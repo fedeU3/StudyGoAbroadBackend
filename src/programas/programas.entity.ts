@@ -31,8 +31,9 @@ export class ProgramasEntity {
   @Column('int', { name: 'DuracionPrograma' })
   duracionPrograma: number;
 
+  // DECIMAL como string para no perder precision
   @Column('decimal', { name: 'MontoTotalViaje', precision: 15, scale: 2 })
-  montoTotalViaje: number;
+  montoTotalViaje: string;
 
   @Column('varchar', { name: 'InstitucionReceptora', length: 100 })
   institucionReceptora: string;

@@ -1,10 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 
-
+// Los usuarios se cargan por seed: no hay alta desde la API
 @Controller("usuarios")
+@Auth()
+@Roles(Role.EDITOR)
 export class UsuariosController {
   constructor(private readonly appService: UsuariosService) { }
 
@@ -13,32 +17,11 @@ export class UsuariosController {
     return this.appService.getAll();
   }
 
-  @Get('name/:name')
-  async getCustomerByName(@Param('name') name: string) {
-    return this.appService.getByName(name);
-  }
-
-  @Get('type/:type')
-  async getCustomerByType(@Param('type') type: string) {
-    return this.appService.getByType(type);
-  }
-
-  @Post()
-  async createCustomer(@Body() createUsuarioDto: CreateUsuarioDto) {
-    return this.appService.createUsuario(createUsuarioDto);
-  }
-
-
-  @Patch(':id/password')
-  async changePassword(
+  @Patch(':id')
+  async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body() updateUsuarioDto: UpdateUsuarioDto,
   ) {
-    return this.appService.changePassword(id, changePasswordDto);
+    return this.appService.updateUsuario(id, updateUsuarioDto);
   }
-
-  /*@Delete(':id')
-  async deleteCustomer(@Param('id', ParseIntPipe) id: number) {
-    return this.appService.deleteUsuario(id);
-  }*/
 }

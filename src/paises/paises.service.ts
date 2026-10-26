@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaisesEntity } from './paises.entity';
@@ -11,18 +11,6 @@ export class PaisesService {
   ) { }
 
   getAll() {
-    return this.paisesRepository.find();
-  }
-
-  async getById(id: number) {
-    const item = await this.paisesRepository.findOne({
-      where: { idPais: id },
-    });
-
-    if (!item) {
-      throw new NotFoundException(`Elemento con id ${id} no encontrado`);
-    }
-
-    return item;
+    return this.paisesRepository.find({ order: { pais: 'ASC' } });
   }
 }

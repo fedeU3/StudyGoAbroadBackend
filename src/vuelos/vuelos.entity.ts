@@ -21,7 +21,12 @@ export class VuelosEntity {
   // Campos
   // =========================
 
-  @Column('char', { name: 'NumeroVuelo', length: 9 })
+  // CHAR(9) se completa con espacios: se recortan al leer
+  @Column('char', {
+    name: 'NumeroVuelo',
+    length: 9,
+    transformer: { to: (value: string) => value, from: (value: string) => value?.trim() },
+  })
   numeroVuelo: string;
 
   @Column('char', { name: 'TipoVuelo', length: 1 })

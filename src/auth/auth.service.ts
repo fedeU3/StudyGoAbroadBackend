@@ -1,9 +1,10 @@
-import { ConflictException, Injectable, NotFoundException, Request, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { SignUpDTO } from './dto/signup.dto';
 import { LoginDTO } from './dto/login.dto';
 import { UsuariosService } from '../usuarios/usuarios.service';
+import { UsuariosEntity } from '../usuarios/usuarios.entity';
+import { ChangePasswordDto } from '../usuarios/dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -11,35 +12,28 @@ export class AuthService {
     private readonly usuariosService: UsuariosService,
     private jwtService: JwtService
   ) { }
-  getAuth(user) {
-    const { password, _id, ...result } = user;
-    return result;
+
+  getMe(user: UsuariosEntity) {
+    return this.usuariosService.toResponse(user);
   }
 
   // Endpoint de login que recibe un objeto LoginDTO y devuelve un token JWT si las credenciales son válidas
   async login(loginDTO: LoginDTO): Promise<{ token: string }> {
     const { usuario, password } = loginDTO;
 
-    // Controla que el usuario exista en la base de datos
+    // Mismo mensaje si el usuario no existe o la contraseña es incorrecta,
+    // para no revelar que usuarios existen
     const existingUser = await this.usuariosService.getByUserName(usuario);
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
-    }
-
-    // Un usuario dado de baja no puede iniciar sesion
-    if (existingUser.estado !== 'A') {
-      throw new UnauthorizedException('User is inactive');
-    }
-
-    // Controla que la contraseña sea correcta
-    const passwordMatch = await bcrypt.compare(password, existingUser.password);
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+    const passwordMatch =
+      existingUser && (await bcrypt.compare(password, existingUser.password));
+    if (!existingUser || !passwordMatch) {
+      throw new UnauthorizedException('Credenciales inválidas');
     }
 
     // Genera un token JWT para el usuario autenticado
     const token = this.jwtService.sign({
       id: existingUser.idUsuario,
+      rol: existingUser.rol?.rol,
     })
 
     // Actualiza el token en la base de datos
@@ -49,24 +43,7 @@ export class AuthService {
     return { token };
   }
 
-  /*   async signUp(signUpDTO: SignUpDTO): Promise<{token: string}> {
-      const { password } = signUpDTO;
-  
-      const existingUser = await this.usuariosService.getByUserName(signUpDTO.usuario);
-  
-      if (existingUser) {
-        throw new ConflictException('User with this user name already exists');
-      }
-      
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const newUser = await this.usuariosService.createUsuario({
-        ...signUpDTO,
-        password: hashedPassword,
-      })
-  
-      const token = this.jwtService.sign({ id: newUser.idUsuario });
-  
-      return { token };
-    } */
+  changePassword(idUsuario: number, dto: ChangePasswordDto): Promise<void> {
+    return this.usuariosService.changePassword(idUsuario, dto);
+  }
 }
