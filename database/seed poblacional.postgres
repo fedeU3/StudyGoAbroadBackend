@@ -2,10 +2,12 @@
 -- SEED POBLACIONAL
 -- ============================================================
 
+BEGIN;
+
 -- -----------------------
 -- Aeropuertos
 -- -----------------------
-INSERT INTO "Aeropuetos" ("IdAeropuerto", "Aeropuerto")
+INSERT INTO public."Aeropuetos" ("IdAeropuerto", "Aeropuerto")
 VALUES
   (1,  'Aeropuerto Internacional Ministro Pistarini - Ezeiza Argentina'),
   (2,  'Aeroparque Jorge Newbery - Buenos Aires Argentina'),
@@ -61,7 +63,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Provincias
 -- -----------------------
-INSERT INTO "Provincias" ("IdProvincia", "Provincia")
+INSERT INTO public."Provincias" ("IdProvincia", "Provincia")
 VALUES
   (1,  'Buenos Aires'),
   (2,  'CABA'),
@@ -92,7 +94,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Ciudades
 -- -----------------------
-INSERT INTO "Ciudades" ("IdCiudad", "IdProvincia", "Ciudad")
+INSERT INTO public."Ciudades" ("IdCiudad", "IdProvincia", "Ciudad")
 VALUES
   (1,  24, 'San Miguel de Tucuman'),
   (2,  24, 'Yerba Buena'),
@@ -137,7 +139,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Institucion
 -- -----------------------
--- INSERT INTO "Institucion" ("IdInstitucion", "IdCiudad", "IdProvincia", "IdPais", "Institucion", "Estado")
+-- INSERT INTO public."Institucion" ("IdInstitucion", "IdCiudad", "IdProvincia", "IdPais", "Institucion", "Estado")
 -- VALUES
 -- ("IdInstitucion", "IdCiudad", "IdProvincia", "IdPais", "Institucion", "Estado")
 -- ON CONFLICT DO NOTHING;
@@ -145,7 +147,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- MediosDePago (valores de prueba)
 -- -----------------------
-INSERT INTO "MediosDePago" ("IdMedioDePago", "MedioDePago", "Estado")
+INSERT INTO public."MediosDePago" ("IdMedioDePago", "MedioDePago", "Estado")
 VALUES
   (1, 'Efectivo', 'A'),
   (2, 'Transferencia', 'A'),
@@ -157,7 +159,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Pagos
 -- -----------------------
--- INSERT INTO "Pagos" ("IdPago", "IdPasajero", "NumeroCuota", "MontoAbonado", "FechaPago")
+-- INSERT INTO public."Pagos" ("IdPago", "IdPasajero", "NumeroCuota", "MontoAbonado", "FechaPago")
 -- VALUES
 -- ("IdPago", "IdPasajero", "NumeroCuota", "MontoAbonado", "FechaPago")
 -- ON CONFLICT DO NOTHING;
@@ -165,7 +167,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Paises
 -- -----------------------
-INSERT INTO "Paises" ("IdPais", "Pais")
+INSERT INTO public."Paises" ("IdPais", "Pais")
 VALUES
   (1,   'Afganistan'),
   (2,   'Albania'),
@@ -366,7 +368,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Pasajeros
 -- -----------------------
--- INSERT INTO "Pasajeros" ("IdPasajero", "IdFactura", "IdPasaporte", "IdProvincia", "IdCiudad", "IdInstitucion", "Nombres", "Apellido", "DNI", "FechaNacimiento", "Nacionalidad", "Domicilio", "Email", "Alergia", "Dieta", "Estado")
+-- INSERT INTO public."Pasajeros" ("IdPasajero", "IdFactura", "IdPasaporte", "IdProvincia", "IdCiudad", "IdInstitucion", "Nombres", "Apellido", "DNI", "FechaNacimiento", "Nacionalidad", "Domicilio", "Email", "Alergia", "Dieta", "Estado")
 -- VALUES
 -- ("IdPasajero", "IdFactura", "IdPasaporte", "IdProvincia", "IdCiudad", "IdInstitucion", "Nombres", "Apellido", "DNI", "FechaNacimiento", "Nacionalidad", "Domicilio", "Email", "Alergia", "Dieta", "Estado")
 -- ON CONFLICT DO NOTHING;
@@ -374,7 +376,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Pasaportes
 -- -----------------------
--- INSERT INTO "Pasaportes" ("IdPasaporte", "PaisEmisor", "NumeroPasaporte", "FechaVencimiento", "FechaEmision", "Estado")
+-- INSERT INTO public."Pasaportes" ("IdPasaporte", "PaisEmisor", "NumeroPasaporte", "FechaVencimiento", "FechaEmision", "Estado")
 -- VALUES
 -- ("IdPasaporte", "PaisEmisor", "NumeroPasaporte", "FechaVencimiento", "FechaEmision", "Estado")
 -- ON CONFLICT DO NOTHING;
@@ -382,7 +384,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Programa
 -- -----------------------
--- INSERT INTO "Programa" ("IdPrograma", "IdTipoPrograma", "PaisExcursion", "PaisDestino", "NombrePrograma", "DuracionPrograma", "MontoTotalViaje", "InstitucionReceptora", "Estado")
+-- INSERT INTO public."Programa" ("IdPrograma", "IdTipoPrograma", "PaisExcursion", "PaisDestino", "NombrePrograma", "DuracionPrograma", "MontoTotalViaje", "InstitucionReceptora", "Estado")
 -- VALUES
 -- ("IdPrograma", "IdTipoPrograma", "PaisExcursion", "PaisDestino", "NombrePrograma", "DuracionPrograma", "MontoTotalViaje", "InstitucionReceptora", "Estado")
 -- ON CONFLICT DO NOTHING;
@@ -390,7 +392,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- Roles
 -- -----------------------
-INSERT INTO "Roles" ("IdRol", "Rol")
+INSERT INTO public."Roles" ("IdRol", "Rol")
 VALUES
   (1, 'Editor'),
   (2, 'Lector')
@@ -399,7 +401,7 @@ ON CONFLICT DO NOTHING;
 -- -----------------------
 -- TiposProgramas
 -- -----------------------
-INSERT INTO "TiposProgramas" ("IdTipoPrograma", "TipoPrograma")
+INSERT INTO public."TiposProgramas" ("IdTipoPrograma", "TipoPrograma")
 VALUES
   (1, 'Work and Travel'),
   (2, 'Work and Study'),
@@ -419,7 +421,7 @@ ON CONFLICT ("IdUsuario") DO NOTHING;
 -- -----------------------
 -- Viajes
 -- -----------------------
--- INSERT INTO "Viajes" ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
+-- INSERT INTO public."Viajes" ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
 -- VALUES
 -- ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
 -- ON CONFLICT DO NOTHING;
@@ -427,7 +429,7 @@ ON CONFLICT ("IdUsuario") DO NOTHING;
 -- -----------------------
 -- Vuelos
 -- -----------------------
--- INSERT INTO "Vuelos" ("IdVuelo", "AeropuertoOrigen", "AeropuertoDestino", "NumeroVuelo", "TipoVuelo", "Fecha")
+-- INSERT INTO public."Vuelos" ("IdVuelo", "AeropuertoOrigen", "AeropuertoDestino", "NumeroVuelo", "TipoVuelo", "Fecha")
 -- VALUES
 -- ("IdVuelo", "AeropuertoOrigen", "AeropuertoDestino", "NumeroVuelo", "TipoVuelo", "Fecha")
 -- ON CONFLICT DO NOTHING;
@@ -762,21 +764,21 @@ SELECT setval(pg_get_serial_sequence('public."Pagos"', 'IdPago'), COALESCE((SELE
 -- ============================================================
 -- Ajuste de secuencias (el seed inserta IDs explicitos)
 -- ============================================================
-SELECT setval(pg_get_serial_sequence('"Roles"', 'IdRol'), (SELECT MAX("IdRol") FROM "Roles"));
-SELECT setval(pg_get_serial_sequence('"Provincias"', 'IdProvincia'), (SELECT MAX("IdProvincia") FROM "Provincias"));
-SELECT setval(pg_get_serial_sequence('"Ciudades"', 'IdCiudad'), (SELECT MAX("IdCiudad") FROM "Ciudades"));
-SELECT setval(pg_get_serial_sequence('"Paises"', 'IdPais'), (SELECT MAX("IdPais") FROM "Paises"));
-SELECT setval(pg_get_serial_sequence('"Aeropuetos"', 'IdAeropuerto'), (SELECT MAX("IdAeropuerto") FROM "Aeropuetos"));
-SELECT setval(pg_get_serial_sequence('"Usuarios"', 'IdUsuario'), (SELECT MAX("IdUsuario") FROM "Usuarios"));
-SELECT setval(pg_get_serial_sequence('"TiposProgramas"', 'IdTipoPrograma'), (SELECT MAX("IdTipoPrograma") FROM "TiposProgramas"));
-SELECT setval(pg_get_serial_sequence('"Programa"', 'IdPrograma'), (SELECT MAX("IdPrograma") FROM "Programa"));
-SELECT setval(pg_get_serial_sequence('"Institucion"', 'IdInstitucion'), (SELECT MAX("IdInstitucion") FROM "Institucion"));
-SELECT setval(pg_get_serial_sequence('"Pasaportes"', 'IdPasaporte'), (SELECT MAX("IdPasaporte") FROM "Pasaportes"));
-SELECT setval(pg_get_serial_sequence('"Pasajeros"', 'IdPasajero'), (SELECT MAX("IdPasajero") FROM "Pasajeros"));
-SELECT setval(pg_get_serial_sequence('"MediosDePago"', 'IdMedioDePago'), (SELECT MAX("IdMedioDePago") FROM "MediosDePago"));
-SELECT setval(pg_get_serial_sequence('"Pagos"', 'IdPago'), (SELECT MAX("IdPago") FROM "Pagos"));
-SELECT setval(pg_get_serial_sequence('"Vuelos"', 'IdVuelo'), (SELECT MAX("IdVuelo") FROM "Vuelos"));
-SELECT setval(pg_get_serial_sequence('"Viajes"', 'IdViaje'), (SELECT MAX("IdViaje") FROM "Viajes"));
+SELECT setval(pg_get_serial_sequence('public."Roles"', 'IdRol'), (SELECT MAX("IdRol") FROM public."Roles"));
+SELECT setval(pg_get_serial_sequence('public."Provincias"', 'IdProvincia'), (SELECT MAX("IdProvincia") FROM public."Provincias"));
+SELECT setval(pg_get_serial_sequence('public."Ciudades"', 'IdCiudad'), (SELECT MAX("IdCiudad") FROM public."Ciudades"));
+SELECT setval(pg_get_serial_sequence('public."Paises"', 'IdPais'), (SELECT MAX("IdPais") FROM public."Paises"));
+SELECT setval(pg_get_serial_sequence('public."Aeropuetos"', 'IdAeropuerto'), (SELECT MAX("IdAeropuerto") FROM public."Aeropuetos"));
+SELECT setval(pg_get_serial_sequence('public."Usuarios"', 'IdUsuario'), (SELECT MAX("IdUsuario") FROM public."Usuarios"));
+SELECT setval(pg_get_serial_sequence('public."TiposProgramas"', 'IdTipoPrograma'), (SELECT MAX("IdTipoPrograma") FROM public."TiposProgramas"));
+SELECT setval(pg_get_serial_sequence('public."Programa"', 'IdPrograma'), (SELECT MAX("IdPrograma") FROM public."Programa"));
+SELECT setval(pg_get_serial_sequence('public."Institucion"', 'IdInstitucion'), (SELECT MAX("IdInstitucion") FROM public."Institucion"));
+SELECT setval(pg_get_serial_sequence('public."Pasaportes"', 'IdPasaporte'), (SELECT MAX("IdPasaporte") FROM public."Pasaportes"));
+SELECT setval(pg_get_serial_sequence('public."Pasajeros"', 'IdPasajero'), (SELECT MAX("IdPasajero") FROM public."Pasajeros"));
+SELECT setval(pg_get_serial_sequence('public."MediosDePago"', 'IdMedioDePago'), (SELECT MAX("IdMedioDePago") FROM public."MediosDePago"));
+SELECT setval(pg_get_serial_sequence('public."Pagos"', 'IdPago'), (SELECT MAX("IdPago") FROM public."Pagos"));
+SELECT setval(pg_get_serial_sequence('public."Vuelos"', 'IdVuelo'), (SELECT MAX("IdVuelo") FROM public."Vuelos"));
+SELECT setval(pg_get_serial_sequence('public."Viajes"', 'IdViaje'), (SELECT MAX("IdViaje") FROM public."Viajes"));
 
 COMMIT;
 
