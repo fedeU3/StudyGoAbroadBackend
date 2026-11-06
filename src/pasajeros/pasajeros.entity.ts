@@ -78,8 +78,12 @@ export class PasajerosEntity {
   @JoinColumn({ name: 'IdProvincia' })
   provincia: ProvinciasEntity;
 
+  // FK compuesta: IdProvincia tambien la usa la relacion con Provincias
   @ManyToOne(() => CiudadesEntity)
-  @JoinColumn({ name: 'IdCiudad' })
+  @JoinColumn([
+    { name: 'IdCiudad', referencedColumnName: 'idCiudad' },
+    { name: 'IdProvincia', referencedColumnName: 'idProvincia' },
+  ])
   ciudad: CiudadesEntity;
 
   @ManyToOne(() => InstitucionesEntity)
