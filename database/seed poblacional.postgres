@@ -1,0 +1,480 @@
+-- ============================================================
+-- SEED POBLACIONAL
+-- ============================================================
+
+-- -----------------------
+-- Aeropuertos
+-- -----------------------
+INSERT INTO "Aeropuetos" ("IdAeropuerto", "Aeropuerto")
+VALUES
+  (1,  'Aeropuerto Internacional Ministro Pistarini - Ezeiza Argentina'),
+  (2,  'Aeroparque Jorge Newbery - Buenos Aires Argentina'),
+  (3,  'Aeropuerto Internacional Ingeniero Ambrosio Taravella - Cordoba Argentina'),
+  (4,  'Aeropuerto Internacional Teniente Benjamin Matienzo - Tucuman Argentina'),
+  (5,  'Aeropuerto Internacional O Hare - Chicago'),
+  (6,  'Aeropuerto Internacional Hartsfield-Jackson - Atlanta'),
+  (7,  'Aeropuerto Internacional John F Kennedy - Nueva York'),
+  (8,  'Aeropuerto Internacional de Miami - Miami'),
+  (9,  'Aeropuerto Internacional de Los Angeles - Los Angeles'),
+  (10, 'Aeropuerto Internacional Toronto Pearson - Toronto'),
+  (11, 'Aeropuerto Internacional de Vancouver - Vancouver'),
+  (12, 'Aeropuerto de Londres-Heathrow - Reino Unido'),
+  (13, 'Aeropuerto de Londres-Gatwick - Reino Unido'),
+  (14, 'Aeropuerto de Londres-Stansted - Reino Unido'),
+  (15, 'Aeropuerto de Londres-Luton - Reino Unido'),
+  (16, 'Aeropuerto de la Ciudad de Londres - Reino Unido'),
+  (17, 'Aeropuerto de Londres-Southend - Reino Unido'),
+  (18, 'Aeropuerto Internacional de Kingsford Smith - Sydney Australia'),
+  (19, 'Aeropuerto de Melbourne - Australia'),
+  (20, 'Aeropuerto Internacional de Kuala Lumpur - Malasia'),
+  (21, 'Aeropuerto Internacional de Singapur Changi - Singapur'),
+  (22, 'Aeropuerto de Dublin - Irlanda'),
+  (23, 'Aeropuerto de Cork - Irlanda'),
+  (24, 'Aeropuerto de Shannon - Irlanda'),
+  (25, 'Aeropuerto de Edimburgo - Escocia'),
+  (26, 'Aeropuerto Internacional de Glasgow - Escocia'),
+  (27, 'Aeropuerto de Aberdeen - Escocia'),
+  (28, 'Aeropuerto de Cardiff - Gales'),
+  (29, 'Aeropuerto Internacional O R Tambo - Johannesburgo'),
+  (30, 'Aeropuerto Internacional de Ciudad del Cabo - Ciudad del Cabo'),
+  (31, 'Aeropuerto Internacional Jorge Chavez - Lima Peru'),
+  (32, 'Aeropuerto Internacional de Tocumen - Panama'),
+  (33, 'Aeropuerto Internacional de Guarulhos - Sao Paulo Brasil'),
+  (34, 'Aeropuerto Internacional Galeao - Rio de Janeiro Brasil'),
+  (35, 'Aeropuerto Internacional Benito Juarez - Ciudad de Mexico'),
+  (36, 'Aeropuerto Internacional El Dorado - Bogota Colombia'),
+  (37, 'Aeropuerto de Frankfurt am Main - Alemania'),
+  (38, 'Aeropuerto de Munich-Franz Josef Strauss - Alemania'),
+  (39, 'Aeropuerto Adolfo Suarez Madrid-Barajas - Espana'),
+  (40, 'Aeropuerto Josep Tarradellas Barcelona-El Prat - Espana'),
+  (41, 'Aeropuerto Humberto Delgado - Lisboa Portugal'),
+  (42, 'Aeropuerto de Paris-Charles de Gaulle - Francia'),
+  (43, 'Aeropuerto de Roma-Fiumicino - Italia'),
+  (44, 'Aeropuerto Internacional de Hamad - Doha Qatar'),
+  (45, 'Aeropuerto Internacional de Dubai - Emiratos Arabes Unidos'),
+  (46, 'Aeropuerto Internacional Rey Khalid - Riad Arabia Saudi'),
+  (47, 'Aeropuerto Internacional Rey Abdulaziz - Yeda Arabia Saudi'),
+  (48, 'Aeropuerto de Estambul - Turquia'),
+  (49, 'Aeropuerto Internacional de Narita - Tokio Japon')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Ciudades
+-- -----------------------
+INSERT INTO "Ciudades" ("IdCiudad", "Ciudad")
+VALUES
+  (1,  'San Miguel de Tucuman'),
+  (2,  'Yerba Buena'),
+  (3,  'Tafi Viejo'),
+  (4,  'Concepcion'),
+  (5,  'Aguilares'),
+  (6,  'Monteros'),
+  (7,  'Famailla'),
+  (8,  'Tafi del Valle'),
+  (9,  'Banda del Rio Sali'),
+  (10, 'San Pablo'),
+  (11, 'Lules'),
+  (12, 'Las Talitas'),
+  (13, 'Salta'),
+  (14, 'San Ramon de la Nueva Oran'),
+  (15, 'Tartagal'),
+  (16, 'General Guemes'),
+  (17, 'San Jose de Metan'),
+  (18, 'Rosario de la Frontera'),
+  (19, 'Cafayate'),
+  (20, 'San Salvador de Jujuy'),
+  (21, 'San Pedro de Jujuy'),
+  (22, 'Palpala'),
+  (23, 'Libertador General San Martin'),
+  (24, 'Perico'),
+  (25, 'Humahuaca'),
+  (26, 'La Quiaca'),
+  (27, 'Santiago del Estero'),
+  (28, 'La Banda'),
+  (29, 'Termas de Rio Hondo'),
+  (30, 'Frias'),
+  (31, 'Anatuya'),
+  (32, 'Clodomira'),
+  (33, 'San Fernando del Valle de Catamarca'),
+  (34, 'Andalgala'),
+  (35, 'Belen'),
+  (36, 'Santa Maria'),
+  (37, 'Tinogasta'),
+  (38, 'Recreo')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Institucion
+-- -----------------------
+-- INSERT INTO "Institucion" ("IdInstitucion", "IdCiudad", "IdProvincia", "IdPais", "Institucion", "Estado")
+-- VALUES
+-- ("IdInstitucion", "IdCiudad", "IdProvincia", "IdPais", "Institucion", "Estado")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Pagos
+-- -----------------------
+-- INSERT INTO "Pagos" ("IdPago", "IdPasajero", "NumeroCuota", "MontoAbonado", "FechaPago")
+-- VALUES
+-- ("IdPago", "IdPasajero", "NumeroCuota", "MontoAbonado", "FechaPago")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Paises
+-- -----------------------
+INSERT INTO "Paises" ("IdPais", "Pais")
+VALUES
+  (1,   'Afganistan'),
+  (2,   'Albania'),
+  (3,   'Alemania'),
+  (4,   'Andorra'),
+  (5,   'Angola'),
+  (6,   'Antigua y Barbuda'),
+  (7,   'Arabia Saudita'),
+  (8,   'Argelia'),
+  (9,   'Argentina'),
+  (10,  'Armenia'),
+  (11,  'Australia'),
+  (12,  'Austria'),
+  (13,  'Azerbaiyan'),
+  (14,  'Bahamas'),
+  (15,  'Bahrein'),
+  (16,  'Bangladesh'),
+  (17,  'Barbados'),
+  (18,  'Belgica'),
+  (19,  'Belice'),
+  (20,  'Benin'),
+  (21,  'Bielorrusia'),
+  (22,  'Birmania'),
+  (23,  'Bolivia'),
+  (24,  'Bosnia y Herzegovina'),
+  (25,  'Botsuana'),
+  (26,  'Brasil'),
+  (27,  'Brunei'),
+  (28,  'Bulgaria'),
+  (29,  'Burkina Faso'),
+  (30,  'Burundi'),
+  (31,  'Butan'),
+  (32,  'Cabo Verde'),
+  (33,  'Camboya'),
+  (34,  'Camerun'),
+  (35,  'Canada'),
+  (36,  'Catar'),
+  (37,  'Chad'),
+  (38,  'Chile'),
+  (39,  'China'),
+  (40,  'Chipre'),
+  (41,  'Ciudad del Vaticano'),
+  (42,  'Colombia'),
+  (43,  'Comoras'),
+  (44,  'Corea del Norte'),
+  (45,  'Corea del Sur'),
+  (46,  'Costa de Marfil'),
+  (47,  'Costa Rica'),
+  (48,  'Croacia'),
+  (49,  'Cuba'),
+  (50,  'Dinamarca'),
+  (51,  'Dominica'),
+  (52,  'Ecuador'),
+  (53,  'Egipto'),
+  (54,  'El Salvador'),
+  (55,  'Emiratos Arabes Unidos'),
+  (56,  'Eritrea'),
+  (57,  'Eslovaquia'),
+  (58,  'Eslovenia'),
+  (59,  'Espana'),
+  (60,  'Estados Unidos'),
+  (61,  'Estonia'),
+  (62,  'Etiopia'),
+  (63,  'Filipinas'),
+  (64,  'Finlandia'),
+  (65,  'Fiyi'),
+  (66,  'Francia'),
+  (67,  'Gabon'),
+  (68,  'Gambia'),
+  (69,  'Georgia'),
+  (70,  'Ghana'),
+  (71,  'Granada'),
+  (72,  'Grecia'),
+  (73,  'Guatemala'),
+  (74,  'Guinea'),
+  (75,  'Guinea-Bisau'),
+  (76,  'Guinea Ecuatorial'),
+  (77,  'Guyana'),
+  (78,  'Haiti'),
+  (79,  'Honduras'),
+  (80,  'Hungria'),
+  (81,  'India'),
+  (82,  'Indonesia'),
+  (83,  'Irak'),
+  (84,  'Iran'),
+  (85,  'Irlanda'),
+  (86,  'Islandia'),
+  (87,  'Islas Marshall'),
+  (88,  'Islas Salomon'),
+  (89,  'Israel'),
+  (90,  'Italia'),
+  (91,  'Jamaica'),
+  (92,  'Japon'),
+  (93,  'Jordania'),
+  (94,  'Kazajistan'),
+  (95,  'Kenia'),
+  (96,  'Kirguistan'),
+  (97,  'Kiribati'),
+  (98,  'Kuwait'),
+  (99,  'Laos'),
+  (100, 'Lesoto'),
+  (101, 'Letonia'),
+  (102, 'Libano'),
+  (103, 'Liberia'),
+  (104, 'Libia'),
+  (105, 'Liechtenstein'),
+  (106, 'Lituania'),
+  (107, 'Luxemburgo'),
+  (108, 'Macedonia del Norte'),
+  (109, 'Madagascar'),
+  (110, 'Malasia'),
+  (111, 'Malaui'),
+  (112, 'Maldivas'),
+  (113, 'Mali'),
+  (114, 'Malta'),
+  (115, 'Marruecos'),
+  (116, 'Mauricio'),
+  (117, 'Mauritania'),
+  (118, 'Mexico'),
+  (119, 'Micronesia'),
+  (120, 'Moldavia'),
+  (121, 'Monaco'),
+  (122, 'Mongolia'),
+  (123, 'Montenegro'),
+  (124, 'Mozambique'),
+  (125, 'Namibia'),
+  (126, 'Nauru'),
+  (127, 'Nepal'),
+  (128, 'Nicaragua'),
+  (129, 'Niger'),
+  (130, 'Nigeria'),
+  (131, 'Noruega'),
+  (132, 'Nueva Zelanda'),
+  (133, 'Oman'),
+  (134, 'Paises Bajos'),
+  (135, 'Pakistan'),
+  (136, 'Palaos'),
+  (137, 'Palestina'),
+  (138, 'Panama'),
+  (139, 'Papua Nueva Guinea'),
+  (140, 'Paraguay'),
+  (141, 'Peru'),
+  (142, 'Polonia'),
+  (143, 'Portugal'),
+  (144, 'Reino Unido'),
+  (145, 'Republica Centroafricana'),
+  (146, 'Republica Checa'),
+  (147, 'Republica del Congo'),
+  (148, 'Republica Democratica del Congo'),
+  (149, 'Republica Dominicana'),
+  (150, 'Republica Sudafricana'),
+  (151, 'Ruanda'),
+  (152, 'Rumania'),
+  (153, 'Rusia'),
+  (154, 'Samoa'),
+  (155, 'San Cristobal y Nieves'),
+  (156, 'San Marino'),
+  (157, 'San Vicente y las Granadinas'),
+  (158, 'Santa Lucia'),
+  (159, 'Santo Tome y Principe'),
+  (160, 'Senegal'),
+  (161, 'Serbia'),
+  (162, 'Seychelles'),
+  (163, 'Sierra Leona'),
+  (164, 'Singapur'),
+  (165, 'Siria'),
+  (166, 'Somalia'),
+  (167, 'Sri Lanka'),
+  (168, 'Suazilandia'),
+  (169, 'Sudan'),
+  (170, 'Sudan del Sur'),
+  (171, 'Suecia'),
+  (172, 'Suiza'),
+  (173, 'Surinam'),
+  (174, 'Tailandia'),
+  (175, 'Tanzania'),
+  (176, 'Tayikistan'),
+  (177, 'Timor Oriental'),
+  (178, 'Togo'),
+  (179, 'Tonga'),
+  (180, 'Trinidad y Tobago'),
+  (181, 'Tunez'),
+  (182, 'Turkmenistan'),
+  (183, 'Turquia'),
+  (184, 'Tuvalu'),
+  (185, 'Ucrania'),
+  (186, 'Uganda'),
+  (187, 'Uruguay'),
+  (188, 'Uzbekistan'),
+  (189, 'Vanuatu'),
+  (190, 'Venezuela'),
+  (191, 'Vietnam'),
+  (192, 'Yemen'),
+  (193, 'Yibuti'),
+  (194, 'Zimbabue')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Pasajeros
+-- -----------------------
+-- INSERT INTO "Pasajeros" ("IdPasajero", "IdFactura", "IdPasaporte", "IdProvincia", "IdCiudad", "IdInstitucion", "Nombres", "Apellido", "DNI", "FechaNacimiento", "Nacionalidad", "Domicilio", "Email", "Alergia", "Dieta", "Estado")
+-- VALUES
+-- ("IdPasajero", "IdFactura", "IdPasaporte", "IdProvincia", "IdCiudad", "IdInstitucion", "Nombres", "Apellido", "DNI", "FechaNacimiento", "Nacionalidad", "Domicilio", "Email", "Alergia", "Dieta", "Estado")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Pasaportes
+-- -----------------------
+-- INSERT INTO "Pasaportes" ("IdPasaporte", "PaisEmisor", "NumeroPasaporte", "FechaVencimiento", "FechaEmision", "Estado")
+-- VALUES
+-- ("IdPasaporte", "PaisEmisor", "NumeroPasaporte", "FechaVencimiento", "FechaEmision", "Estado")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Programa
+-- -----------------------
+-- INSERT INTO "Programa" ("IdPrograma", "IdTipoPrograma", "PaisExcursion", "PaisDestino", "NombrePrograma", "DuracionPrograma", "MontoTotalViaje", "InstitucionReceptora", "Estado")
+-- VALUES
+-- ("IdPrograma", "IdTipoPrograma", "PaisExcursion", "PaisDestino", "NombrePrograma", "DuracionPrograma", "MontoTotalViaje", "InstitucionReceptora", "Estado")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Provincias
+-- -----------------------
+INSERT INTO "Provincias" ("IdProvincia", "Provincia")
+VALUES
+  (1,  'Buenos Aires'),
+  (2,  'CABA'),
+  (3,  'Catamarca'),
+  (4,  'Chaco'),
+  (5,  'Chubut'),
+  (6,  'Cordoba'),
+  (7,  'Corrientes'),
+  (8,  'Entre Rios'),
+  (9,  'Formosa'),
+  (10, 'Jujuy'),
+  (11, 'La Pampa'),
+  (12, 'La Rioja'),
+  (13, 'Mendoza'),
+  (14, 'Misiones'),
+  (15, 'Neuquen'),
+  (16, 'Rio Negro'),
+  (17, 'Salta'),
+  (18, 'San Juan'),
+  (19, 'San Luis'),
+  (20, 'Santa Cruz'),
+  (21, 'Santa Fe'),
+  (22, 'Sgo. del Estero'),
+  (23, 'Tierra del Fuego'),
+  (24, 'Tucuman')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Roles
+-- -----------------------
+INSERT INTO "Roles" ("IdRol", "Rol")
+VALUES
+  (1, 'Editor'),
+  (2, 'Lector')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- TiposProgramas
+-- -----------------------
+INSERT INTO "TiposProgramas" ("IdTipoPrograma", "TipoPrograma")
+VALUES
+  (1, 'Work and Travel'),
+  (2, 'Work and Study'),
+  (3, 'Study and Travel'),
+  (4, 'Turismo')
+ON CONFLICT DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- Usuarios
+-- ----------------------------------------------------------------------------
+INSERT INTO public."Usuarios" ("IdUsuario", "IdRol", "Usuario", "Password", "Token")
+VALUES
+  (1, 1, 'Editor',    'editor12345', '00000000000000000000000000000001'),
+  (2, 2, 'Lector', 'lector12345', '00000000000000000000000000000002')
+ON CONFLICT ("IdUsuario") DO NOTHING;
+
+-- -----------------------
+-- Viajes
+-- -----------------------
+-- INSERT INTO "Viajes" ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
+-- VALUES
+-- ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- Vuelos
+-- -----------------------
+-- INSERT INTO "Vuelos" ("IdVuelo", "AeropuertoOrigen", "AeropuertoDestino", "NumeroVuelo", "TipoVuelo", "Fecha")
+-- VALUES
+-- ("IdVuelo", "AeropuertoOrigen", "AeropuertoDestino", "NumeroVuelo", "TipoVuelo", "Fecha")
+-- ON CONFLICT DO NOTHING;
+
+-- ============================================================
+
+-- node -e "const bcrypt=require('bcrypt'); bcrypt.hash('coni12345',10).then(h=>console.log('Coni:',h))"
+-- node -e "const bcrypt=require('bcrypt'); bcrypt.hash('adri12345',10).then(h=>console.log('Adriana:',h))"
+
+-- ============================================================
+
+-- Coni:    $2b$10$4YmI9KjxALw/Rn56HU0rGOZJ8Xpc1utwHhAValRwolpmQfFe/Fp96
+-- Adriana: $2b$10$XClUHPHmAcDWuFJFtfWt..hXwSUhI17pZmiP6CBMjDYyx7uLIvuXa
+
+-- ============================================================
+
+UPDATE public."Usuarios"
+SET "Password" = '$2b$10$4YmI9KjxALw/Rn56HU0rGOZJ8Xpc1utwHhAValRwolpmQfFe/Fp96'
+WHERE "Usuario" = 'Coni';
+
+UPDATE public."Usuarios"
+SET "Password" = '$2b$10$XClUHPHmAcDWuFJFtfWt..hXwSUhI17pZmiP6CBMjDYyx7uLIvuXa'
+WHERE "Usuario" = 'Adriana';
+
+-- ============================================================
+-- Ajuste de secuencias (el seed inserta IDs explicitos)
+-- ============================================================
+SELECT setval(pg_get_serial_sequence('"Roles"', 'IdRol'), (SELECT MAX("IdRol") FROM "Roles"));
+SELECT setval(pg_get_serial_sequence('"Provincias"', 'IdProvincia'), (SELECT MAX("IdProvincia") FROM "Provincias"));
+SELECT setval(pg_get_serial_sequence('"Ciudades"', 'IdCiudad'), (SELECT MAX("IdCiudad") FROM "Ciudades"));
+SELECT setval(pg_get_serial_sequence('"Paises"', 'IdPais'), (SELECT MAX("IdPais") FROM "Paises"));
+SELECT setval(pg_get_serial_sequence('"Aeropuetos"', 'IdAeropuerto'), (SELECT MAX("IdAeropuerto") FROM "Aeropuetos"));
+SELECT setval(pg_get_serial_sequence('"Usuarios"', 'IdUsuario'), (SELECT MAX("IdUsuario") FROM "Usuarios"));
+SELECT setval(pg_get_serial_sequence('"TiposProgramas"', 'IdTipoPrograma'), (SELECT MAX("IdTipoPrograma") FROM "TiposProgramas"));
+SELECT setval(pg_get_serial_sequence('"Programa"', 'IdPrograma'), (SELECT MAX("IdPrograma") FROM "Programa"));
+SELECT setval(pg_get_serial_sequence('"Institucion"', 'IdInstitucion'), (SELECT MAX("IdInstitucion") FROM "Institucion"));
+SELECT setval(pg_get_serial_sequence('"Pasaportes"', 'IdPasaporte'), (SELECT MAX("IdPasaporte") FROM "Pasaportes"));
+SELECT setval(pg_get_serial_sequence('"Pasajeros"', 'IdPasajero'), (SELECT MAX("IdPasajero") FROM "Pasajeros"));
+SELECT setval(pg_get_serial_sequence('"Pagos"', 'IdPago'), (SELECT MAX("IdPago") FROM "Pagos"));
+SELECT setval(pg_get_serial_sequence('"Vuelos"', 'IdVuelo'), (SELECT MAX("IdVuelo") FROM "Vuelos"));
+SELECT setval(pg_get_serial_sequence('"Viajes"', 'IdViaje'), (SELECT MAX("IdViaje") FROM "Viajes"));
+
+COMMIT;
+
+-- ============================================================
+-- FIN DEL SCRIPT
+-- ============================================================
+
+SELECT * FROM public. "Viajes" ; 
+SELECT * FROM public. "Vuelos" ;
+SELECT * FROM public. "Pagos" ;
+SELECT * FROM public. "Pasajeros" ;
+SELECT * FROM public. "Pasaportes" ;
+SELECT * FROM public. "Institucion" ;
+SELECT * FROM public. "Programa" ;
+SELECT * FROM public. "Usuarios" ;
+SELECT * FROM public. "Aeropuetos" ;
+SELECT * FROM public. "Ciudades" ;
+SELECT * FROM public. "Paises" ;
+SELECT * FROM public. "Provincias" ;
+SELECT * FROM public. "Roles" ;
+SELECT * FROM public. "TiposProgramas" ;
