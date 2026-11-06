@@ -18,6 +18,7 @@ import { ProgramasModule } from './programas/programas.module';
 import { VuelosModule } from './vuelos/vuelos.module';
 import { ViajesModule } from './viajes/viajes.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { MediosDePagoModule } from './medios-de-pago/medios-de-pago.module';
 
 
 
@@ -57,6 +58,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     VuelosModule,
     ViajesModule,
     DashboardModule,
+    MediosDePagoModule,
 
   ],
   controllers: [HomeController],
