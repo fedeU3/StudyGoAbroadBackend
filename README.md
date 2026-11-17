@@ -1,224 +1,175 @@
-# NestJS Backend Template
+# StudyGoAbroad — Backend
 
 <p align="left">
-  <img src="https://img.shields.io/badge/NestJS-11.0.1-E0234E?style=flat-square&logo=nestjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-5.7.3-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/TypeORM-0.3.20-FE0803?style=flat-square" />
-  <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=flat-square&logo=node.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/Jest-30.x-C21325?style=flat-square&logo=jest&logoColor=white" />
-  <img src="https://img.shields.io/badge/ESLint-9.x_flat_config-4B32C3?style=flat-square&logo=eslint&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white" />
 </p>
 
-A production-oriented NestJS backend template demonstrating a feature-based modular architecture for a business management domain — covering orders, inventory, purchasing, invoicing, and customer/supplier management across ~20 fully-scaffolded TypeORM-mapped modules.
+Esta es la API REST de **StudyGoAbroad**, un sistema para gestionar viajes de estudio. Maneja pasajeros, pasaportes, instituciones, programas, vuelos, viajes y pagos en cuotas, con autenticación JWT y dos roles: lector y editor.
+
+El frontend está en el repositorio `StudyGoAbroadFrontend` (React + Vite).
 
 ---
 
-## Overview
+## Stack
 
-This repository is a **reference implementation and scaffold** for building scalable REST APIs with NestJS. It serves as a working template that enforces a strict, consistent layer separation across every domain module:
-
-```
-Entity (TypeORM) → DTO (class-based) → Service (Repository pattern) → Controller (REST) → Module
-```
-
-Every feature module is self-contained, independently importable, and follows the same structural contract — making the codebase trivially extensible and easy to onboard onto.
-
----
-
-## Tech Stack
-
-| Layer | Technology | Version |
-|---|---|---|
-| Framework | NestJS (Express platform) | 11.0.1 |
-| Language | TypeScript | 5.7.3 |
-| ORM | TypeORM + @nestjs/typeorm | 0.3.20 / 11.0.0 |
-| Runtime | Node.js | 22.x |
-| HTTP | @nestjs/platform-express | 11.0.1 |
-| Reactive | RxJS | 7.8.1 |
-| Testing | Jest + ts-jest + Supertest | 30.x / 29.x / 7.x |
-| Linting | ESLint 9 flat config + typescript-eslint | 9.18.0 / 8.20.0 |
-| Formatting | Prettier | 3.4.2 |
-
-**TypeScript compiler options of note:**
-- `module`: `nodenext` + `moduleResolution: nodenext` (ESM-compatible resolution)
-- `target`: `ES2023`
-- `emitDecoratorMetadata: true` + `experimentalDecorators: true` (required for TypeORM/DI)
-- `strictNullChecks: true`
-
----
-
-## Architecture
-
-### Feature Module Structure
-
-Every domain module follows an identical file layout:
-
-```
-src/{feature}/
-├── {feature}.module.ts       # NestJS module — wires the slice together
-├── {feature}.entity.ts       # TypeORM entity with column decorators
-├── {feature}.service.ts      # Business logic — injects Repository<Entity>
-├── {feature}.controller.ts   # REST controller — routes to service methods
-├── {feature}.controller.spec.ts  # Unit test for controller
-└── DTO/
-    └── Create{Feature}DTO.ts # Input validation shape for POST endpoints
-```
-
-### Service Pattern
-
-All services follow the TypeORM Repository pattern via NestJS DI:
-
-```typescript
-@Injectable()
-export class CustomersService {
-  constructor(
-    @InjectRepository(CustomersEntity)
-    private readonly CustomersRepository: Repository<CustomersEntity>,
-  ) {}
-
-  getAll() {
-    return this.CustomersRepository.find();
-  }
-
-  getByName(nombre: string) {
-    return this.CustomersRepository.find({
-      where: { nombre: ILike(`%${nombre}%`) },
-    });
-  }
-}
-```
-
----
-
-## Domain Modules
-
-The template covers a full business management domain split into ~20 feature slices:
-
-| Module | Domain Responsibility |
+| Capa | Tecnología |
 |---|---|
-| `customers` | Customer records and lookup |
-| `employees` | Employee management |
-| `employee_privileges` | Role-to-employee privilege mappings |
-| `privileges` | Privilege/role definitions |
-| `orders` | Order lifecycle management |
-| `order_details` | Line items per order |
-| `order_status` | Order status catalog |
-| `order_details_status` | Status per order line item |
-| `order_tax_status` | Tax status catalog for orders |
-| `products` | Product catalog |
-| `suppliers` | Supplier records |
-| `shippers` | Shipping provider records |
-| `invoices` | Invoice generation and tracking |
-| `inventory_transactions` | Stock movement records |
-| `inventory_transactions_types` | Transaction type catalog |
-| `purchase_orders` | Purchase order management |
-| `purchase_order_details` | Line items per purchase order |
-| `purchase_order_status` | Purchase order status catalog |
-| `sales_reports` | Sales reporting aggregation |
-| `strings` | Localization / string table |
-| `ejemplo` | Minimal reference module (scaffold example) |
+| Framework | NestJS 11 (Express) |
+| Lenguaje | TypeScript 5.7 |
+| ORM | TypeORM 0.3.20 + `@nestjs/typeorm` |
+| Base de datos | PostgreSQL en Supabase |
+| Auth | `@nestjs/jwt` + Passport JWT + bcryptjs |
+| Validación | class-validator + class-transformer |
+| Tests | Jest + ts-jest |
+| Calidad | ESLint 9 (flat config) + Prettier |
 
 ---
 
-## Getting Started
+## Puesta en marcha
 
-### Prerequisites
+### Requisitos
 
-- Node.js 18+ (22.x recommended)
-- npm 10+
-- A compatible SQL database (PostgreSQL recommended — TypeORM entities use `bytea` column type)
+- Node.js 22.x
+- Una base PostgreSQL. El proyecto usa Supabase, pero cualquier Postgres sirve.
 
-### Installation
+### 1. Instalar dependencias
 
 ```bash
 npm install
 ```
 
-### Database Configuration
+### 2. Variables de entorno
 
-Configure your database connection in your environment. TypeORM is imported per-module — set the connection in `AppModule` using `TypeOrmModule.forRoot(...)` with your DB credentials:
+Copiá `example.env` a `.env` y completá los valores:
 
-```typescript
-TypeOrmModule.forRoot({
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  autoLoadEntities: true,
-  synchronize: true, // disable in production
-})
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `DATABASE_URL` | Sí | Connection string de Postgres. En Supabase va el pooler en modo sesión (puerto 5432). |
+| `JWT_SECRET` | Sí | Secreto con el que se firman los tokens |
+| `JWT_EXPIRE` | No | Duración del token (por defecto `1h`) |
+| `PORT` | No | Puerto HTTP (por defecto `3000`) |
+
+### 3. Crear la base de datos
+
+TypeORM **no** crea ni migra el esquema. Los scripts están en `database/` y se ejecutan en este orden:
+
+1. `seed inicial.postgres`: borra y recrea todas las tablas en el schema `public` y carga los catálogos (roles, países, provincias, ciudades, medios de pago, etc.).
+2. `seed poblacional.postgres`: carga datos de prueba (pasajeros, pasaportes, instituciones, pagos, etc.). Es opcional.
+
+```bash
+psql "$DATABASE_URL" -f "database/seed inicial.postgres"
+psql "$DATABASE_URL" -f "database/seed poblacional.postgres"
 ```
 
+> ⚠️ El seed inicial hace `DROP TABLE ... CASCADE`, así que borra todos los datos existentes.
+
+`seed inicial mysql.sql` es el script original exportado de ER/Studio. Se guarda solo como referencia.
+
+### 4. Levantar la API
+
+```bash
+npm run start:dev
+```
+
+Para comprobar que funciona: `GET /home` → `{ ok: true, message: "API funcionando ✅" }`.
+
 ---
 
-## Available Scripts
+## Scripts
 
-| Script | Description |
+| Script | Descripción |
 |---|---|
-| `npm run start` | Start in production mode (compiled) |
-| `npm run start:dev` | Start with file-watch (hot reload) |
-| `npm run start:debug` | Start with debugger attached + watch |
-| `npm run start:prod` | Run compiled output from `dist/` |
-| `npm run build` | Compile TypeScript via `nest build` |
-| `npm run format` | Format all source files with Prettier |
-| `npm run lint` | Lint and auto-fix with ESLint |
-| `npm run test` | Run unit tests |
-| `npm run test:watch` | Run unit tests in watch mode |
-| `npm run test:cov` | Run unit tests with coverage report |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run test:debug` | Run tests with Node.js debugger attached |
-
-Default port: `3000` (overridable via `PORT` environment variable)
+| `npm run start:dev` | Desarrollo con recarga automática |
+| `npm run start:debug` | Desarrollo con debugger |
+| `npm run build` | Compila a `dist/` |
+| `npm run start:prod` | Ejecuta `dist/main` |
+| `npm run lint` | ESLint con autofix |
+| `npm run format` | Prettier |
+| `npm run test` | Tests unitarios (`src/**/*.spec.ts`) |
+| `npm run test:cov` | Tests con cobertura |
 
 ---
 
-## Project Structure
+## API
+
+La documentación completa (OpenAPI 3) está en [`swagger api-studygoabroad backend.yaml`](./swagger%20api-studygoabroad%20backend.yaml). Se puede abrir en [editor.swagger.io](https://editor.swagger.io) o con cualquier visor de OpenAPI.
+
+### Reglas generales
+
+- **Autenticación:** todas las rutas, salvo `POST /auth/login` y `GET /home`, requieren el header `Authorization: Bearer <token>`.
+- **Roles:**
+  - Los `GET` los pueden usar `LECTOR` y `EDITOR`.
+  - Los `POST` y `PATCH` son solo para `EDITOR`.
+  - Excepciones: `/auth/me` y `/auth/password` los puede usar cualquier usuario logueado, y `/usuarios` es solo para `EDITOR`, incluidos los `GET`.
+- **Baja lógica:** no hay `DELETE`. Para dar de baja un registro se envía `PATCH` con `{ "estado": "B" }` (`A` = activo, `B` = baja). Los listados devuelven solo registros activos, salvo que se pase `?incluirBajas=true`.
+- **Paginación:** los listados principales aceptan `?page=` (por defecto 1) y `?limit=` (por defecto 20, máximo 100). La respuesta tiene la forma `{ items, total, page, limit }`.
+- **Formatos:**
+  - Fechas sin hora: `YYYY-MM-DD`.
+  - Fechas con hora: ISO 8601 (`2026-03-15T14:30:00`).
+  - Montos: string decimal (`"1500.00"`).
+- **Errores:**
+  - Los mensajes vienen en español.
+  - Un dato duplicado (UNIQUE) devuelve `409`.
+  - Una referencia a un registro que no existe (FK) devuelve `404`.
+  - Un campo no declarado en el DTO o un valor demasiado largo devuelve `400`.
+
+### Endpoints
+
+| Recurso | Endpoints |
+|---|---|
+| Auth | `POST /auth/login` · `GET /auth/me` · `PATCH /auth/password` |
+| Usuarios | `GET /usuarios` · `PATCH /usuarios/:id` |
+| Dashboard | `GET /dashboard`: pasajeros activos, programas, próximos viajes y vuelos, pagos del mes y totales, pasaportes que vencen en los próximos 180 días |
+| Pasajeros | `GET /pasajeros` · `GET /pasajeros/:id` · `POST /pasajeros` · `PATCH /pasajeros/:id` |
+| Pasaportes | `GET /pasaportes/por-vencer` · `GET/POST/PATCH /pasajeros/:id/pasaporte` |
+| Pagos | `GET/POST /pasajeros/:id/pagos` · `PATCH /pagos/:id` |
+| Viajes | `GET/POST /pasajeros/:id/viajes` · `GET /programas/:id/viajes` · `GET/PATCH /viajes/:id` |
+| Instituciones | `GET /instituciones` · `GET /instituciones/:id` · `GET /instituciones/:id/pasajeros` · `POST` · `PATCH /:id` |
+| Programas | `GET /programas` · `GET /programas/:id` · `POST` · `PATCH /:id` |
+| Vuelos | `GET /vuelos` · `GET /vuelos/:id` · `POST` · `PATCH /:id` |
+| Aeropuertos | `GET /aeropuertos` · `POST` · `PATCH /:id` |
+| Catálogos (solo lectura) | `GET /paises` · `GET /provincias` · `GET /ciudades` · `GET /roles` · `GET /tipos-programas` |
+
+---
+
+## Estructura del proyecto
 
 ```
 .
+├── database/                 Scripts SQL (seed inicial + poblacional)
 ├── src/
-│   ├── main.ts                    # Bootstrap — NestFactory.create + listen
-│   ├── app.module.ts              # Root module
-│   ├── app.controller.ts
-│   ├── app.service.ts
-│   │
-│   ├── customers/                 # Feature module (representative)
-│   ├── employees/
-│   ├── orders/
-│   ├── order_details/
-│   ├── order_status/
-│   ├── products/
-│   ├── suppliers/
-│   ├── invoices/
-│   ├── inventory_transactions/
-│   ├── purchase_orders/
-│   └── ...                        # ~20 domain modules total
-│
-├── test/
-│   ├── app.e2e-spec.ts
-│   └── jest-e2e.json
-│
-├── tsconfig.json                  # nodenext + ES2023 + strict decorators
-├── eslint.config.mjs              # ESLint 9 flat config
-├── nest-cli.json
-└── package.json
+│   ├── main.ts               Bootstrap: CORS, ValidationPipe global, QueryFailedFilter
+│   ├── app.module.ts         Conexión TypeORM y registro de módulos
+│   ├── auth/                 Login, JWT strategy, @Auth(), @Roles(), RolesGuard
+│   ├── common/
+│   │   ├── dto/              PaginationQueryDto, EstadoQueryDto
+│   │   ├── filters/          Traducción de errores de Postgres a HTTP
+│   │   └── validators/       Regex de fecha y monto, helpers
+│   ├── home/                 Health check
+│   ├── dashboard/            Resumen de indicadores
+│   └── <recurso>/            Un módulo por recurso:
+│       ├── <recurso>.module.ts
+│       ├── <recurso>.entity.ts
+│       ├── <recurso>.service.ts
+│       ├── <recurso>.controller.ts
+│       └── dto/              create-*, update-*, *-query
+└── swagger api-studygoabroad backend.yaml
 ```
 
 ---
 
-## Linting & Code Quality
+## Flujo de trabajo
 
-ESLint is configured with the new **flat config** format (`eslint.config.mjs`) using `typescript-eslint` with `recommendedTypeChecked` rules and `eslint-plugin-prettier` for format enforcement. This means lint errors surface formatting violations directly alongside type-unsafe patterns.
-
-```bash
-npm run lint     # lint + autofix
-npm run format   # prettier write pass
-```
+- Ramas: `<idTareaClickUp>_<usuario>_<Descripcion>`, por ejemplo `86e3zaa7d_fhuespe_Ciudades_Provincias_Medios_De_Pago`.
+- Commits en español con prefijo `feat:` o `fix:`.
+- Todo cambio entra a `main` por Pull Request.
+- Si cambia la API, hay que actualizar el swagger. Si cambia el esquema, hay que actualizar el seed SQL y la entity.
 
 ---
 
-## License
+## Licencia
 
-Private — UNLICENSED.
+Privado — UNLICENSED.
