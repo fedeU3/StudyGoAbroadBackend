@@ -421,9 +421,17 @@ ON CONFLICT ("IdUsuario") DO NOTHING;
 -- -----------------------
 -- Viajes
 -- -----------------------
--- INSERT INTO public."Viajes" ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
+-- INSERT INTO public."Viajes" ("IdViaje", "IdPrograma", "VueloNacionalIda", "VueloNacionalVuelta", "VueloInternacionalIda", "VueloInternacionalVuelta", "FechaSalida")
 -- VALUES
--- ("IdViaje", "IdPasajero", "IdPrograma", "VueloInternacional", "VueloNacional")
+-- ("IdViaje", "IdPrograma", "VueloNacionalIda", "VueloNacionalVuelta", "VueloInternacionalIda", "VueloInternacionalVuelta", "FechaSalida")
+-- ON CONFLICT DO NOTHING;
+
+-- -----------------------
+-- ViajesPasajeros
+-- -----------------------
+-- INSERT INTO public."ViajesPasajeros" ("IdPasajero", "IdViaje")
+-- VALUES
+-- ("IdPasajero", "IdViaje")
 -- ON CONFLICT DO NOTHING;
 
 -- -----------------------
@@ -786,7 +794,8 @@ COMMIT;
 -- FIN DEL SCRIPT
 -- ============================================================
 
-SELECT * FROM public. "Viajes" ; 
+SELECT * FROM public. "Viajes" ;
+SELECT * FROM public. "ViajesPasajeros" ;
 SELECT * FROM public. "Vuelos" ;
 SELECT * FROM public. "Pagos" ;
 SELECT * FROM public. "MediosDePago" ;

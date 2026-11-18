@@ -4,7 +4,7 @@
 -- Project :      StudyGoAbroad.dm1
 -- Author :       Federico
 --
--- Date Created : Friday, November 06, 2026 10:27:06
+-- Date Created : Wednesday, November 18, 2026 12:15:23
 -- Target DBMS : MySQL 5.x
 --
 
@@ -36,33 +36,37 @@ DROP TABLE Usuarios
 ;
 DROP TABLE Viajes
 ;
+DROP TABLE ViajesPasajeros
+;
 DROP TABLE Vuelos
 ;
--- 
--- TABLE: Aeropuetos 
+--
+-- TABLE: Aeropuetos
 --
 
 CREATE TABLE Aeropuetos(
     IdAeropuerto    INT             AUTO_INCREMENT,
-    Aeropuerto      VARCHAR(120)    NOT NULL
+    Aeropuerto      VARCHAR(120)    NOT NULL,
+    PRIMARY KEY (IdAeropuerto)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Ciudades 
+--
+-- TABLE: Ciudades
 --
 
 CREATE TABLE Ciudades(
     IdCiudad       INT             AUTO_INCREMENT,
     IdProvincia    INT             NOT NULL,
-    Ciudad         VARCHAR(100)    NOT NULL
+    Ciudad         VARCHAR(100)    NOT NULL,
+    PRIMARY KEY (IdCiudad, IdProvincia)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Institucion 
+--
+-- TABLE: Institucion
 --
 
 CREATE TABLE Institucion(
@@ -71,25 +75,27 @@ CREATE TABLE Institucion(
     IdProvincia      INT             NOT NULL,
     IdPais           INT             NOT NULL,
     Institucion      VARCHAR(100)    NOT NULL,
-    Estado           CHAR(1)         NOT NULL
+    Estado           CHAR(1)         NOT NULL,
+    PRIMARY KEY (IdInstitucion)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: MediosDePago 
+--
+-- TABLE: MediosDePago
 --
 
 CREATE TABLE MediosDePago(
     IdMedioDePago    INT            AUTO_INCREMENT,
     MedioDePago      VARCHAR(30)    NOT NULL,
-    Estado           CHAR(1)
+    Estado           CHAR(1),
+    PRIMARY KEY (IdMedioDePago)
 )
 COMMENT=''
 ;
 
--- 
--- TABLE: Pagos 
+--
+-- TABLE: Pagos
 --
 
 CREATE TABLE Pagos(
@@ -98,24 +104,26 @@ CREATE TABLE Pagos(
     IdMedioDePago    INT               NOT NULL,
     NumeroCuota      INT               NOT NULL,
     MontoAbonado     DECIMAL(15, 2)    NOT NULL,
-    FechaPago        DATETIME          NOT NULL
+    FechaPago        DATETIME          NOT NULL,
+    PRIMARY KEY (IdPago, IdPasajero)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Paises 
+--
+-- TABLE: Paises
 --
 
 CREATE TABLE Paises(
     IdPais    INT            AUTO_INCREMENT,
-    Pais      VARCHAR(50)    NOT NULL
+    Pais      VARCHAR(50)    NOT NULL,
+    PRIMARY KEY (IdPais)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Pasajeros 
+--
+-- TABLE: Pasajeros
 --
 
 CREATE TABLE Pasajeros(
@@ -134,13 +142,14 @@ CREATE TABLE Pasajeros(
     Email              VARCHAR(120)    NOT NULL,
     Alergia            VARCHAR(120),
     Dieta              VARCHAR(120),
-    Estado             CHAR(1)         NOT NULL
+    Estado             CHAR(1)         NOT NULL,
+    PRIMARY KEY (IdPasajero)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Pasaportes 
+--
+-- TABLE: Pasaportes
 --
 
 CREATE TABLE Pasaportes(
@@ -149,13 +158,14 @@ CREATE TABLE Pasaportes(
     NumeroPasaporte     VARCHAR(9)    NOT NULL,
     FechaVencimiento    DATETIME      NOT NULL,
     FechaEmision        DATETIME      NOT NULL,
-    Estado              CHAR(1)       NOT NULL
+    Estado              CHAR(1)       NOT NULL,
+    PRIMARY KEY (IdPasaporte)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Programa 
+--
+-- TABLE: Programa
 --
 
 CREATE TABLE Programa(
@@ -167,46 +177,50 @@ CREATE TABLE Programa(
     DuracionPrograma        INT               NOT NULL,
     MontoTotalViaje         DECIMAL(15, 2)    NOT NULL,
     InstitucionReceptora    VARCHAR(100)      NOT NULL,
-    Estado                  CHAR(1)           NOT NULL
+    Estado                  CHAR(1)           NOT NULL,
+    PRIMARY KEY (IdPrograma)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Provincias 
+--
+-- TABLE: Provincias
 --
 
 CREATE TABLE Provincias(
     IdProvincia    INT            AUTO_INCREMENT,
-    Provincia      VARCHAR(20)    NOT NULL
+    Provincia      VARCHAR(20)    NOT NULL,
+    PRIMARY KEY (IdProvincia)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Roles 
+--
+-- TABLE: Roles
 --
 
 CREATE TABLE Roles(
     IdRol    INT            AUTO_INCREMENT,
-    Rol      VARCHAR(20)    NOT NULL
+    Rol      VARCHAR(20)    NOT NULL,
+    PRIMARY KEY (IdRol)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: TiposProgramas 
+--
+-- TABLE: TiposProgramas
 --
 
 CREATE TABLE TiposProgramas(
     IdTipoPrograma    INT            NOT NULL,
-    TipoPrograma      VARCHAR(20)    NOT NULL
+    TipoPrograma      VARCHAR(20)    NOT NULL,
+    PRIMARY KEY (IdTipoPrograma)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Usuarios 
+--
+-- TABLE: Usuarios
 --
 
 CREATE TABLE Usuarios(
@@ -214,27 +228,43 @@ CREATE TABLE Usuarios(
     IdRol        INT             NOT NULL,
     Usuario      VARCHAR(20)     NOT NULL,
     Token        VARCHAR(512)    NOT NULL,
-    Password     CHAR(60)        NOT NULL
+    Password     CHAR(60)        NOT NULL,
+    PRIMARY KEY (IdUsuario)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Viajes 
+--
+-- TABLE: Viajes
 --
 
 CREATE TABLE Viajes(
-    IdViaje               INT    AUTO_INCREMENT,
-    IdPasajero            INT    NOT NULL,
-    IdPrograma            INT    NOT NULL,
-    VueloInternacional    INT    NOT NULL,
-    VueloNacional         INT
+    IdViaje                     INT         AUTO_INCREMENT,
+    IdPrograma                  INT         NOT NULL,
+    VueloNacionalIda            INT,
+    VueloNacionalVuelta         INT,
+    VueloInternacionalIda       INT,
+    VueloInternacionalVuelta    INT,
+    FechaSalida                 DATETIME    NOT NULL,
+    PRIMARY KEY (IdViaje)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- TABLE: Vuelos 
+--
+-- TABLE: ViajesPasajeros
+--
+
+CREATE TABLE ViajesPasajeros(
+    IdPasajero    INT    NOT NULL,
+    IdViaje       INT    NOT NULL,
+    PRIMARY KEY (IdPasajero, IdViaje)
+)
+COMMENT=''
+;
+
+--
+-- TABLE: Vuelos
 --
 
 CREATE TABLE Vuelos(
@@ -243,348 +273,255 @@ CREATE TABLE Vuelos(
     AeropuertoDestino    INT         NOT NULL,
     NumeroVuelo          CHAR(9)     NOT NULL,
     TipoVuelo            CHAR(1)     NOT NULL,
-    Fecha                DATETIME    NOT NULL
+    Fecha                DATETIME    NOT NULL,
+    PRIMARY KEY (IdVuelo)
 )ENGINE=INNODB
 COMMENT=''
 ;
 
--- 
--- INDEX: UI_Aeropuerto 
+--
+-- INDEX: UI_Aeropuerto
 --
 
 CREATE UNIQUE INDEX UI_Aeropuerto ON Aeropuetos(Aeropuerto)
 ;
--- 
--- INDEX: UI_Ciudad 
+--
+-- INDEX: UI_Ciudad
 --
 
 CREATE UNIQUE INDEX UI_Ciudad ON Ciudades(Ciudad)
 ;
--- 
--- INDEX: UI_Institucion 
+--
+-- INDEX: UI_Institucion
 --
 
 CREATE UNIQUE INDEX UI_Institucion ON Institucion(Institucion)
 ;
--- 
--- INDEX: UI_Pais 
+--
+-- INDEX: UI_Pais
 --
 
 CREATE UNIQUE INDEX UI_Pais ON Paises(Pais)
 ;
--- 
--- INDEX: IE_IdFactura 
+--
+-- INDEX: IE_IdFactura
 --
 
 CREATE INDEX IE_IdFactura ON Pasajeros(IdFactura)
 ;
--- 
--- INDEX: UI_DNI 
+--
+-- INDEX: UI_DNI
 --
 
 CREATE UNIQUE INDEX UI_DNI ON Pasajeros(DNI)
 ;
--- 
--- INDEX: UI_IdFactura 
+--
+-- INDEX: UI_IdFactura
 --
 
 CREATE UNIQUE INDEX UI_IdFactura ON Pasajeros(IdFactura)
 ;
--- 
--- INDEX: UI_NumeroPasaporte 
+--
+-- INDEX: UI_NumeroPasaporte
 --
 
 CREATE UNIQUE INDEX UI_NumeroPasaporte ON Pasaportes(NumeroPasaporte)
 ;
--- 
--- INDEX: UI_NombrePrograma 
+--
+-- INDEX: UI_NombrePrograma
 --
 
 CREATE UNIQUE INDEX UI_NombrePrograma ON Programa(NombrePrograma)
 ;
--- 
--- INDEX: UI_Provincias 
+--
+-- INDEX: UI_Provincias
 --
 
 CREATE UNIQUE INDEX UI_Provincias ON Provincias(Provincia)
 ;
--- 
--- INDEX: UI_TipoPrograma 
+--
+-- INDEX: UI_TipoPrograma
 --
 
 CREATE UNIQUE INDEX UI_TipoPrograma ON TiposProgramas(TipoPrograma)
 ;
--- 
--- INDEX: UI_Usuario 
+--
+-- INDEX: UI_Usuario
 --
 
 CREATE UNIQUE INDEX UI_Usuario ON Usuarios(Usuario)
 ;
--- 
--- TABLE: Aeropuetos 
+--
+-- INDEX: UI_FechaSalidaPrograma
 --
 
-ALTER TABLE Aeropuetos ADD 
-    PRIMARY KEY (IdAeropuerto)
+CREATE UNIQUE INDEX UI_FechaSalidaPrograma ON Viajes(FechaSalida, IdPrograma)
 ;
-
--- 
--- TABLE: Ciudades 
+--
+-- TABLE: Ciudades
 --
 
-ALTER TABLE Ciudades ADD 
-    PRIMARY KEY (IdCiudad, IdProvincia)
-;
-
--- 
--- TABLE: Institucion 
---
-
-ALTER TABLE Institucion ADD 
-    PRIMARY KEY (IdInstitucion)
-;
-
--- 
--- TABLE: MediosDePago 
---
-
-ALTER TABLE MediosDePago ADD 
-    PRIMARY KEY (IdMedioDePago)
-;
-
--- 
--- TABLE: Pagos 
---
-
-ALTER TABLE Pagos ADD 
-    PRIMARY KEY (IdPago, IdPasajero)
-;
-
--- 
--- TABLE: Paises 
---
-
-ALTER TABLE Paises ADD 
-    PRIMARY KEY (IdPais)
-;
-
--- 
--- TABLE: Pasajeros 
---
-
-ALTER TABLE Pasajeros ADD 
-    PRIMARY KEY (IdPasajero)
-;
-
--- 
--- TABLE: Pasaportes 
---
-
-ALTER TABLE Pasaportes ADD 
-    PRIMARY KEY (IdPasaporte)
-;
-
--- 
--- TABLE: Programa 
---
-
-ALTER TABLE Programa ADD 
-    PRIMARY KEY (IdPrograma)
-;
-
--- 
--- TABLE: Provincias 
---
-
-ALTER TABLE Provincias ADD 
-    PRIMARY KEY (IdProvincia)
-;
-
--- 
--- TABLE: Roles 
---
-
-ALTER TABLE Roles ADD 
-    PRIMARY KEY (IdRol)
-;
-
--- 
--- TABLE: TiposProgramas 
---
-
-ALTER TABLE TiposProgramas ADD 
-    PRIMARY KEY (IdTipoPrograma)
-;
-
--- 
--- TABLE: Usuarios 
---
-
-ALTER TABLE Usuarios ADD 
-    PRIMARY KEY (IdUsuario)
-;
-
--- 
--- TABLE: Viajes 
---
-
-ALTER TABLE Viajes ADD 
-    PRIMARY KEY (IdViaje, IdPasajero, IdPrograma)
-;
-
--- 
--- TABLE: Vuelos 
---
-
-ALTER TABLE Vuelos ADD 
-    PRIMARY KEY (IdVuelo)
-;
-
--- 
--- TABLE: Ciudades 
---
-
-ALTER TABLE Ciudades ADD CONSTRAINT RefProvincias26 
+ALTER TABLE Ciudades ADD CONSTRAINT RefProvincias26
     FOREIGN KEY (IdProvincia)
     REFERENCES Provincias(IdProvincia)
 ;
 
 
--- 
--- TABLE: Institucion 
+--
+-- TABLE: Institucion
 --
 
-ALTER TABLE Institucion ADD CONSTRAINT RefCiudades8 
+ALTER TABLE Institucion ADD CONSTRAINT RefCiudades8
     FOREIGN KEY (IdCiudad, IdProvincia)
     REFERENCES Ciudades(IdCiudad, IdProvincia)
 ;
 
-ALTER TABLE Institucion ADD CONSTRAINT RefProvincias9 
+ALTER TABLE Institucion ADD CONSTRAINT RefProvincias9
     FOREIGN KEY (IdProvincia)
     REFERENCES Provincias(IdProvincia)
 ;
 
-ALTER TABLE Institucion ADD CONSTRAINT RefPaises10 
+ALTER TABLE Institucion ADD CONSTRAINT RefPaises10
     FOREIGN KEY (IdPais)
     REFERENCES Paises(IdPais)
 ;
 
 
--- 
--- TABLE: Pagos 
+--
+-- TABLE: Pagos
 --
 
-ALTER TABLE Pagos ADD CONSTRAINT RefPasajeros13 
+ALTER TABLE Pagos ADD CONSTRAINT RefPasajeros13
     FOREIGN KEY (IdPasajero)
     REFERENCES Pasajeros(IdPasajero)
 ;
 
-ALTER TABLE Pagos ADD CONSTRAINT RefMediosDePago27 
+ALTER TABLE Pagos ADD CONSTRAINT RefMediosDePago27
     FOREIGN KEY (IdMedioDePago)
     REFERENCES MediosDePago(IdMedioDePago)
 ;
 
 
--- 
--- TABLE: Pasajeros 
+--
+-- TABLE: Pasajeros
 --
 
-ALTER TABLE Pasajeros ADD CONSTRAINT RefPasaportes21 
-    FOREIGN KEY (IdPasaporte)
-    REFERENCES Pasaportes(IdPasaporte)
-;
-
-ALTER TABLE Pasajeros ADD CONSTRAINT RefProvincias1 
+ALTER TABLE Pasajeros ADD CONSTRAINT RefProvincias1
     FOREIGN KEY (IdProvincia)
     REFERENCES Provincias(IdProvincia)
 ;
 
-ALTER TABLE Pasajeros ADD CONSTRAINT RefCiudades2 
+ALTER TABLE Pasajeros ADD CONSTRAINT RefCiudades2
     FOREIGN KEY (IdProvincia, IdCiudad)
     REFERENCES Ciudades(IdCiudad, IdProvincia)
 ;
 
-ALTER TABLE Pasajeros ADD CONSTRAINT RefInstitucion11 
+ALTER TABLE Pasajeros ADD CONSTRAINT RefInstitucion11
     FOREIGN KEY (IdInstitucion)
     REFERENCES Institucion(IdInstitucion)
 ;
 
+ALTER TABLE Pasajeros ADD CONSTRAINT RefPasaportes21
+    FOREIGN KEY (IdPasaporte)
+    REFERENCES Pasaportes(IdPasaporte)
+;
 
--- 
--- TABLE: Pasaportes 
+
+--
+-- TABLE: Pasaportes
 --
 
-ALTER TABLE Pasaportes ADD CONSTRAINT RefPaises22 
+ALTER TABLE Pasaportes ADD CONSTRAINT RefPaises22
     FOREIGN KEY (PaisEmisor)
     REFERENCES Paises(IdPais)
 ;
 
 
--- 
--- TABLE: Programa 
+--
+-- TABLE: Programa
 --
 
-ALTER TABLE Programa ADD CONSTRAINT RefTiposProgramas23 
-    FOREIGN KEY (IdTipoPrograma)
-    REFERENCES TiposProgramas(IdTipoPrograma)
-;
-
-ALTER TABLE Programa ADD CONSTRAINT RefPaises3 
+ALTER TABLE Programa ADD CONSTRAINT RefPaises3
     FOREIGN KEY (PaisDestino)
     REFERENCES Paises(IdPais)
 ;
 
-ALTER TABLE Programa ADD CONSTRAINT RefPaises5 
+ALTER TABLE Programa ADD CONSTRAINT RefPaises5
     FOREIGN KEY (PaisExcursion)
     REFERENCES Paises(IdPais)
 ;
 
+ALTER TABLE Programa ADD CONSTRAINT RefTiposProgramas23
+    FOREIGN KEY (IdTipoPrograma)
+    REFERENCES TiposProgramas(IdTipoPrograma)
+;
 
--- 
--- TABLE: Usuarios 
+
+--
+-- TABLE: Usuarios
 --
 
-ALTER TABLE Usuarios ADD CONSTRAINT RefRoles20 
+ALTER TABLE Usuarios ADD CONSTRAINT RefRoles20
     FOREIGN KEY (IdRol)
     REFERENCES Roles(IdRol)
 ;
 
 
--- 
--- TABLE: Viajes 
+--
+-- TABLE: Viajes
 --
 
-ALTER TABLE Viajes ADD CONSTRAINT RefPrograma14 
+ALTER TABLE Viajes ADD CONSTRAINT RefPrograma14
     FOREIGN KEY (IdPrograma)
     REFERENCES Programa(IdPrograma)
 ;
 
-ALTER TABLE Viajes ADD CONSTRAINT RefVuelos15 
-    FOREIGN KEY (VueloInternacional)
+ALTER TABLE Viajes ADD CONSTRAINT RefVuelos15
+    FOREIGN KEY (VueloNacionalIda)
     REFERENCES Vuelos(IdVuelo)
 ;
 
-ALTER TABLE Viajes ADD CONSTRAINT RefVuelos16 
-    FOREIGN KEY (VueloNacional)
+ALTER TABLE Viajes ADD CONSTRAINT RefVuelos16
+    FOREIGN KEY (VueloInternacionalIda)
     REFERENCES Vuelos(IdVuelo)
 ;
 
-ALTER TABLE Viajes ADD CONSTRAINT RefPasajeros12 
+ALTER TABLE Viajes ADD CONSTRAINT RefVuelos32
+    FOREIGN KEY (VueloInternacionalVuelta)
+    REFERENCES Vuelos(IdVuelo)
+;
+
+ALTER TABLE Viajes ADD CONSTRAINT RefVuelos33
+    FOREIGN KEY (VueloNacionalVuelta)
+    REFERENCES Vuelos(IdVuelo)
+;
+
+
+--
+-- TABLE: ViajesPasajeros
+--
+
+ALTER TABLE ViajesPasajeros ADD CONSTRAINT RefViajes34
+    FOREIGN KEY (IdViaje)
+    REFERENCES Viajes(IdViaje)
+;
+
+ALTER TABLE ViajesPasajeros ADD CONSTRAINT RefPasajeros35
     FOREIGN KEY (IdPasajero)
     REFERENCES Pasajeros(IdPasajero)
 ;
 
 
--- 
--- TABLE: Vuelos 
+--
+-- TABLE: Vuelos
 --
 
-ALTER TABLE Vuelos ADD CONSTRAINT RefAeropuetos18 
+ALTER TABLE Vuelos ADD CONSTRAINT RefAeropuetos18
     FOREIGN KEY (AeropuertoOrigen)
     REFERENCES Aeropuetos(IdAeropuerto)
 ;
 
-ALTER TABLE Vuelos ADD CONSTRAINT RefAeropuetos19 
+ALTER TABLE Vuelos ADD CONSTRAINT RefAeropuetos19
     FOREIGN KEY (AeropuertoDestino)
     REFERENCES Aeropuetos(IdAeropuerto)
 ;
