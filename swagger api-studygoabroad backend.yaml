@@ -6,10 +6,11 @@ info:
 
     **Autenticación:** todas las rutas, salvo `POST /auth/login`, requieren el header `Authorization: Bearer {token}`.
 
-    **Roles:** todos los `GET` → `LECTOR` y `EDITOR`. Todos los `POST` y `PATCH` → solo `EDITOR`.
+    **Roles:** todos los `GET` → `LECTOR` y `EDITOR`. Todos los `POST`, `PATCH` y `DELETE` → solo `EDITOR`.
     Excepciones: `/auth/me` y `/auth/password` los usa cualquier usuario logueado; `/usuarios` es solo `EDITOR` (también los `GET`).
 
     **Baja:** siempre lógica, con `PATCH` sobre `estado` (`A` = Activo, `B` = Baja). Por defecto los listados devuelven solo registros activos; `?incluirBajas=true` muestra todos.
+    Excepciones: los viajes no tienen `estado` (no se dan de baja), y quitar un pasajero de un viaje es un `DELETE` que borra la fila de `ViajesPasajeros`.
 
     **Formatos:** montos como string decimal (`"1500.00"`); fechas `DATE` como `YYYY-MM-DD`; fechas con hora en ISO 8601 (`2026-03-15T14:30:00`).
   version: 1.0.0
@@ -435,6 +436,7 @@ components:
               $ref: "#/components/schemas/Ciudad"
             viajes:
               type: array
+              description: Viajes del pasajero, del más reciente al más viejo
               items:
                 $ref: "#/components/schemas/Viaje"
             pagos:
@@ -847,78 +849,217 @@ components:
     # =========================
     Viaje:
       type: object
+      description: |
+        Un viaje es un grupo de pasajeros que hace un programa en una fecha.
+        Los vuelos son del grupo: todos sus pasajeros vuelan juntos. Los 4 vuelos son opcionales.
+        En los listados solo se incluyen los vuelos internacionales; el detalle trae los 4.
       properties:
         idViaje:
-          type: integer
-          example: 1
-        idPasajero:
           type: integer
           example: 1
         idPrograma:
           type: integer
           example: 1
-        idVueloInternacional:
+        fechaSalida:
+          type: string
+          format: date
+          description: Fecha tentativa de salida (YYYY-MM-DD). Cuando se asigna el vuelo internacional de ida, pasa a ser la fecha de ese vuelo.
+          example: "2027-01-28"
+        fechaSalidaTentativa:
+          type: boolean
+          description: true mientras el viaje no tenga vuelo internacional de ida
+          example: false
+        idVueloInternacionalIda:
           type: integer
+          nullable: true
           example: 1
-        idVueloNacional:
+        idVueloInternacionalVuelta:
           type: integer
           nullable: true
           example: 2
+        idVueloNacionalIda:
+          type: integer
+          nullable: true
+          example: 3
+        idVueloNacionalVuelta:
+          type: integer
+          nullable: true
+          example: 4
+        cantidadPasajeros:
+          type: integer
+          example: 6
         programa:
           $ref: "#/components/schemas/Programa"
-        vueloInternacional:
-          $ref: "#/components/schemas/Vuelo"
-        vueloNacional:
+        vueloInternacionalIda:
           allOf:
             - $ref: "#/components/schemas/Vuelo"
+          nullable: true
+        vueloInternacionalVuelta:
+          allOf:
+            - $ref: "#/components/schemas/Vuelo"
+          nullable: true
+        vueloNacionalIda:
+          allOf:
+            - $ref: "#/components/schemas/Vuelo"
+          nullable: true
+        vueloNacionalVuelta:
+          allOf:
+            - $ref: "#/components/schemas/Vuelo"
+          nullable: true
+    ViajesPaginados:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Viaje"
+        total:
+          type: integer
+          example: 5
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+    PasajeroEnViaje:
+      type: object
+      properties:
+        idPasajero:
+          type: integer
+          example: 1
+        nombres:
+          type: string
+          example: "Martina"
+        apellido:
+          type: string
+          example: "López"
+        dni:
+          type: string
+          example: "42318907"
+        email:
+          type: string
+          example: "martina.lopez@mail.com"
+        estado:
+          $ref: "#/components/schemas/Estado"
+        institucion:
+          type: object
+          properties:
+            idInstitucion:
+              type: integer
+              example: 1
+            institucion:
+              type: string
+              example: "Colegio Nacional"
+        pasaporte:
+          allOf:
+            - $ref: "#/components/schemas/Pasaporte"
           nullable: true
     ViajeDetalle:
       allOf:
         - $ref: "#/components/schemas/Viaje"
         - type: object
           properties:
-            pasajero:
-              $ref: "#/components/schemas/Pasajero"
-    ViajeCreado:
+            programa:
+              $ref: "#/components/schemas/ProgramaDetalle"
+            pasajeros:
+              type: array
+              description: Ordenados por apellido y nombres
+              items:
+                $ref: "#/components/schemas/PasajeroEnViaje"
+    ViajeConAdvertencias:
       allOf:
         - $ref: "#/components/schemas/ViajeDetalle"
         - type: object
           properties:
             advertencias:
               type: array
-              description: Avisos que no bloquean el alta (por ejemplo, pasaporte vencido para la fecha del vuelo)
+              description: |
+                Avisos que no bloquean la operación: pasajeros sin pasaporte, o con un pasaporte que vence
+                antes de la vuelta internacional (o antes de la salida, si todavía no hay vuelta).
               items:
                 type: string
-              example: ["El pasaporte vence el 2026-12-01, antes del vuelo internacional"]
+              example: ["El pasaporte de Martina López vence el 2026-12-14, antes de la vuelta (2027-06-30)"]
     ViajeInput:
       type: object
       required:
         - idPrograma
-        - idVueloInternacional
       properties:
         idPrograma:
           type: integer
           example: 1
-        idVueloInternacional:
-          type: integer
-          description: Tiene que ser un vuelo de tipo I
-          example: 1
-        idVueloNacional:
+        fechaSalida:
+          type: string
+          format: date
+          description: |
+            Fecha tentativa (YYYY-MM-DD). Obligatoria si no se envía idVueloInternacionalIda.
+            Si se envía el vuelo internacional de ida, no se manda: la fecha del viaje es la de ese vuelo.
+          example: "2027-01-28"
+        idVueloInternacionalIda:
           type: integer
           nullable: true
-          description: Opcional; tiene que ser un vuelo de tipo N
+          description: Vuelo de tipo I
+          example: 1
+        idVueloInternacionalVuelta:
+          type: integer
+          nullable: true
+          description: Vuelo de tipo I, posterior a la ida. Requiere idVueloInternacionalIda.
           example: 2
+        idVueloNacionalIda:
+          type: integer
+          nullable: true
+          description: Vuelo de tipo N
+          example: 3
+        idVueloNacionalVuelta:
+          type: integer
+          nullable: true
+          description: Vuelo de tipo N, posterior a la ida. Requiere idVueloNacionalIda.
+          example: 4
+        idsPasajeros:
+          type: array
+          description: Pasajeros del grupo, sin repetidos. Se pueden agregar más después.
+          items:
+            type: integer
+          example: [1, 2, 5]
     ViajeUpdate:
       type: object
-      description: Solo se cambian los vuelos. Para cambiar pasajero o programa se crea otro viaje.
+      description: |
+        Cambia la fecha tentativa o los vuelos del viaje; afecta a todo el grupo.
+        `null` quita un vuelo. El programa no se cambia (se crea otro viaje) y los pasajeros se agregan o quitan con sus propias rutas.
       properties:
-        idVueloInternacional:
+        fechaSalida:
+          type: string
+          format: date
+          description: Solo si el viaje no tiene (ni recibe) vuelo internacional de ida
+          example: "2027-02-03"
+        idVueloInternacionalIda:
           type: integer
-          example: 3
-        idVueloNacional:
+          nullable: true
+          example: 1
+        idVueloInternacionalVuelta:
+          type: integer
+          nullable: true
+          example: 2
+        idVueloNacionalIda:
           type: integer
           nullable: true
           example: null
+        idVueloNacionalVuelta:
+          type: integer
+          nullable: true
+          example: null
+    PasajerosViajeInput:
+      type: object
+      required:
+        - idsPasajeros
+      properties:
+        idsPasajeros:
+          type: array
+          minItems: 1
+          description: Pasajeros que se suman al viaje, sin repetidos. Viajan en los vuelos del grupo.
+          items:
+            type: integer
+          example: [7, 8]
 
     # =========================
     # Pagos
@@ -1001,7 +1142,7 @@ components:
           example: 4
         proximosViajes:
           type: integer
-          description: Viajes cuyo vuelo internacional todavía no salió
+          description: Viajes que todavía no salieron (según el vuelo internacional de ida o, si no hay, la fecha de salida tentativa)
           example: 30
         proximosVuelos:
           type: integer
@@ -1418,7 +1559,9 @@ paths:
       tags:
         - Pasaportes
       summary: Pasaportes próximos a vencer
-      description: Pasaportes activos que vencen dentro de `dias` días, o antes de un vuelo internacional futuro de su pasajero.
+      description: |
+        Pasaportes activos que vencen dentro de `dias` días, o antes de que termine un viaje futuro de su pasajero.
+        El fin del viaje es la vuelta internacional; si todavía no está cargada, la ida; y si no hay vuelos, la fecha de salida tentativa.
       operationId: getPasaportesPorVencer
       parameters:
         - in: query
@@ -1445,32 +1588,53 @@ paths:
   # =========================
   # Viajes
   # =========================
-  /pasajeros/{id}/viajes:
-    parameters:
-      - $ref: "#/components/parameters/Id"
+  /viajes:
     get:
       tags:
         - Viajes
-      summary: Listar los viajes del pasajero
-      operationId: getViajesPasajero
+      summary: Listar viajes (paginado, ordenado por fecha de salida)
+      description: Los próximos viajes se piden con `?desde=<hoy>`. Cada viaje trae su programa, los vuelos internacionales y la cantidad de pasajeros.
+      operationId: getViajes
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - in: query
+          name: idPrograma
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: desde
+          required: false
+          description: Fecha de salida desde (YYYY-MM-DD, inclusive)
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: hasta
+          required: false
+          description: Fecha de salida hasta (YYYY-MM-DD, inclusive)
+          schema:
+            type: string
+            format: date
       responses:
         "200":
-          description: Viajes con programa y vuelos
+          description: Página de viajes
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Viaje"
+                $ref: "#/components/schemas/ViajesPaginados"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
     post:
       tags:
         - Viajes
-      summary: Inscribir al pasajero en un programa con sus vuelos
-      description: Un pasajero puede repetir un programa; cada inscripción es un viaje distinto.
+      summary: Crear un viaje (grupo) con sus pasajeros y vuelos
+      description: |
+        Se puede crear sin vuelos, con una fecha de salida tentativa. Viaje y pasajeros se guardan en una transacción.
+        No puede haber dos viajes del mismo programa con la misma fecha de salida (409).
       operationId: createViaje
       requestBody:
         required: true
@@ -1484,9 +1648,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ViajeCreado"
+                $ref: "#/components/schemas/ViajeConAdvertencias"
         "400":
-          description: Datos inválidos o vuelo de tipo incorrecto para el campo donde se asigna
+          description: Datos inválidos, vuelo de tipo incorrecto para el tramo, vuelta sin ida o anterior a la ida, o falta fechaSalida
           content:
             application/json:
               schema:
@@ -1497,34 +1661,15 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /programas/{id}/viajes:
-    get:
-      tags:
-        - Viajes
-      summary: Listar los viajes de un programa con su pasajero
-      operationId: getViajesPrograma
-      parameters:
-        - $ref: "#/components/parameters/Id"
-      responses:
-        "200":
-          description: Viajes ordenados por apellido del pasajero
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ViajeDetalle"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /viajes/{id}:
     parameters:
       - $ref: "#/components/parameters/Id"
     get:
       tags:
         - Viajes
-      summary: Obtener viaje con pasajero, programa y vuelos
+      summary: Obtener el viaje con su programa, sus 4 vuelos y sus pasajeros
       operationId: getViajeById
       responses:
         "200":
@@ -1540,8 +1685,10 @@ paths:
     patch:
       tags:
         - Viajes
-      summary: Cambiar los vuelos del viaje
-      description: Enviar idPrograma o idPasajero devuelve 400.
+      summary: Cambiar la fecha tentativa o los vuelos del viaje (afecta a todo el grupo)
+      description: |
+        Al asignar el vuelo internacional de ida, fechaSalida pasa a ser la fecha de ese vuelo.
+        Enviar idPrograma o idsPasajeros devuelve 400.
       operationId: updateViaje
       requestBody:
         required: true
@@ -1555,13 +1702,121 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ViajeDetalle"
+                $ref: "#/components/schemas/ViajeConAdvertencias"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /viajes/{id}/pasajeros:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags:
+        - Viajes
+      summary: Agregar pasajeros al viaje
+      description: Viajan en los vuelos del grupo. Si alguno ya está en el viaje devuelve 409 y no se agrega ninguno.
+      operationId: agregarPasajerosViaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasajerosViajeInput"
+      responses:
+        "201":
+          description: Viaje actualizado; las advertencias son solo de los pasajeros agregados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViajeConAdvertencias"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /viajes/{id}/pasajeros/{idPasajero}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+      - in: path
+        name: idPasajero
+        required: true
+        schema:
+          type: integer
+        example: 3
+    delete:
+      tags:
+        - Viajes
+      summary: Quitar un pasajero del viaje
+      description: Borra la fila de ViajesPasajeros (excepción a la baja lógica). Los datos y pagos del pasajero se conservan.
+      operationId: quitarPasajeroViaje
+      responses:
+        "200":
+          description: Viaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViajeDetalle"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: El viaje no existe o el pasajero no está en el viaje
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /pasajeros/{id}/viajes:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Viajes
+      summary: Listar los viajes del pasajero
+      operationId: getViajesPasajero
+      responses:
+        "200":
+          description: Viajes con programa, sus 4 vuelos y cantidad de pasajeros, del más reciente al más viejo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Viaje"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /programas/{id}/viajes:
+    get:
+      tags:
+        - Viajes
+      summary: Listar los viajes de un programa
+      operationId: getViajesPrograma
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Viajes ordenados por fecha de salida, con vuelos internacionales y cantidad de pasajeros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Viaje"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
 

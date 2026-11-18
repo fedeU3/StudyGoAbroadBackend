@@ -12,6 +12,8 @@ const UNIQUE_MESSAGES: Record<string, string> = {
   UI_Institucion: 'Ya existe una institución con ese nombre',
   UI_Aeropuerto: 'Ya existe un aeropuerto con ese nombre',
   UI_Usuario: 'Ya existe un usuario con ese nombre',
+  UI_FechaSalidaPrograma: 'Ya existe un viaje de ese programa con esa fecha de salida',
+  ViajesPasajeros_pkey: 'El pasajero ya está en ese viaje',
 };
 
 @Catch(QueryFailedError)

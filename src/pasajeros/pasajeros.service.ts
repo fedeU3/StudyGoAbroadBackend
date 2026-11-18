@@ -77,7 +77,15 @@ export class PasajerosService {
         institucion: true,
         provincia: true,
         ciudad: true,
-        viajes: { programa: true, vueloInternacional: true, vueloNacional: true },
+        inscripciones: {
+          viaje: {
+            programa: true,
+            vueloInternacionalIda: true,
+            vueloInternacionalVuelta: true,
+            vueloNacionalIda: true,
+            vueloNacionalVuelta: true,
+          },
+        },
         pagos: true,
       },
       order: { pagos: { numeroCuota: 'ASC' } },
@@ -87,7 +95,13 @@ export class PasajerosService {
       throw new NotFoundException(`Pasajero con id ${id} no encontrado`);
     }
 
-    return item;
+    // Se expone como lista de viajes (sin la fila intermedia), del mas reciente al mas viejo
+    const { inscripciones, ...pasajero } = item;
+    const viajes = inscripciones
+      .map((inscripcion) => inscripcion.viaje)
+      .sort((a, b) => b.fechaSalida.localeCompare(a.fechaSalida));
+
+    return { ...pasajero, viajes };
   }
 
   async create(dto: CreatePasajeroDto) {

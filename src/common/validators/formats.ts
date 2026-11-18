@@ -10,3 +10,10 @@ export const ESTADOS = ['A', 'B'];
 export function hoy(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+// Dia (YYYY-MM-DD) de un TIMESTAMP sin zona: pg lo devuelve como hora local,
+// asi que se usan los componentes locales y no toISOString (que pasa a UTC)
+export function fechaDe(fecha: Date): string {
+  const dos = (n: number) => String(n).padStart(2, '0');
+  return `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}`;
+}
