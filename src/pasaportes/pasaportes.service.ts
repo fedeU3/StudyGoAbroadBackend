@@ -57,21 +57,26 @@ export class PasaportesService {
     return this.pasaportesRepository.save(actualizado);
   }
 
-  // Pasaportes activos que vencen dentro de `dias` o antes de un vuelo internacional futuro
+  // Pasaportes activos que vencen dentro de `dias`, o antes de que termine un viaje
+  // futuro del pasajero. El fin del viaje es la vuelta internacional; si todavia no
+  // esta cargada, la ida, y si no hay vuelos, la fecha de salida tentativa.
   async getPorVencer(dias: number) {
     const limite = new Date();
     limite.setDate(limite.getDate() + dias);
+    const finViaje = 'COALESCE(vuelta.fecha, ida.fecha, viaje.fechaSalida)';
 
     const pasajeros = await this.pasajerosRepository
       .createQueryBuilder('pasajero')
       .innerJoinAndSelect('pasajero.pasaporte', 'pasaporte')
-      .leftJoin('pasajero.viajes', 'viaje')
-      .leftJoin('viaje.vueloInternacional', 'vuelo')
+      .leftJoin('pasajero.inscripciones', 'inscripcion')
+      .leftJoin('inscripcion.viaje', 'viaje')
+      .leftJoin('viaje.vueloInternacionalIda', 'ida')
+      .leftJoin('viaje.vueloInternacionalVuelta', 'vuelta')
       .where('pasaporte.estado = :activo', { activo: 'A' })
       .andWhere('pasajero.estado = :activo', { activo: 'A' })
       .andWhere(
-        '(pasaporte.fechaVencimiento <= :limite OR (vuelo.fecha >= :ahora AND vuelo.fecha::date > pasaporte.fechaVencimiento))',
-        { limite: limite.toISOString().slice(0, 10), ahora: new Date() },
+        `(pasaporte.fechaVencimiento <= :limite OR (${finViaje} >= :hoy AND ${finViaje}::date > pasaporte.fechaVencimiento))`,
+        { limite: limite.toISOString().slice(0, 10), hoy: hoy() },
       )
       .orderBy('pasaporte.fechaVencimiento', 'ASC')
       .getMany();

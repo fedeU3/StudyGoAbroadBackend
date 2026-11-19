@@ -14,8 +14,8 @@ export class DashboardService {
         (SELECT COUNT(*) FROM "Pasajeros" WHERE "Estado" = 'A')::int AS "pasajerosActivos",
         (SELECT COUNT(*) FROM "Programa" WHERE "Estado" = 'A')::int AS "programasDisponibles",
         (SELECT COUNT(*) FROM "Viajes" v
-           JOIN "Vuelos" vu ON vu."IdVuelo" = v."VueloInternacional"
-           WHERE vu."Fecha" >= NOW())::int AS "proximosViajes",
+           LEFT JOIN "Vuelos" vu ON vu."IdVuelo" = v."VueloInternacionalIda"
+           WHERE COALESCE(vu."Fecha", v."FechaSalida") >= CURRENT_DATE)::int AS "proximosViajes",
         (SELECT COUNT(*) FROM "Vuelos" WHERE "Fecha" >= NOW())::int AS "proximosVuelos",
         (SELECT COUNT(*) FROM "Pagos"
            WHERE "FechaPago" >= date_trunc('month', NOW()))::int AS "pagosMesCantidad",

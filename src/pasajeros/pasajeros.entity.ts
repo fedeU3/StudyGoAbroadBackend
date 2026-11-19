@@ -4,7 +4,7 @@ import { PasaportesEntity } from '../pasaportes/pasaportes.entity';
 import { ProvinciasEntity } from '../provincias/provincias.entity';
 import { CiudadesEntity } from '../ciudades/ciudades.entity';
 import { InstitucionesEntity } from '../instituciones/instituciones.entity';
-import { ViajesEntity } from '../viajes/viajes.entity';
+import { ViajesPasajerosEntity } from '../viajes-pasajeros/viajes-pasajeros.entity';
 import { PagosEntity } from '../pagos/pagos.entity';
 
 @Entity({ name: 'Pasajeros' })
@@ -90,8 +90,9 @@ export class PasajerosEntity {
   @JoinColumn({ name: 'IdInstitucion' })
   institucion: InstitucionesEntity;
 
-  @OneToMany(() => ViajesEntity, (viaje) => viaje.pasajero)
-  viajes: ViajesEntity[];
+  // Viajes del pasajero, a traves de la tabla intermedia ViajesPasajeros
+  @OneToMany(() => ViajesPasajerosEntity, (inscripcion) => inscripcion.pasajero)
+  inscripciones: ViajesPasajerosEntity[];
 
   @OneToMany(() => PagosEntity, (pago) => pago.pasajero)
   pagos: PagosEntity[];
